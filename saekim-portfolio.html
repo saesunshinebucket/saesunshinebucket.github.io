@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sae Kim — Visual Concept & Previs Artist</title>
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --bg:        #0A0A0B;
+    --bg2:       #131315;
+    --bg3:       #1C1C1F;
+    --line:      #2A2A2E;
+    --paper:     #F2F0EC;
+    --muted:     #7A7873;
+    --accent:    #C2410C;   /* burnt orange — used once, in nav active state */
+    --font-disp: 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--paper);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: center; align-items: center; gap: 48px;
+    height: 72px;
+    background: rgba(10,10,11,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid transparent;
+    transition: border-color .3s;
+  }
+  nav.scrolled { border-bottom-color: var(--line); }
+  nav a {
+    font-size: 13px; font-weight: 500; letter-spacing: .5px;
+    color: var(--muted); text-decoration: none;
+    transition: color .2s;
+  }
+  nav a:hover, nav a.active { color: var(--paper); }
+  nav a.active { color: var(--accent); }
+
+  /* ── BAND ── */
+  .band {
+    width: 100%; height: 44px; overflow: hidden;
+    background: var(--bg3);
+    display: flex; align-items: center;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .band-inner {
+    display: flex; gap: 52px; white-space: nowrap;
+    animation: marquee 28s linear infinite;
+  }
+  .band-inner span {
+    font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--muted);
+    opacity: .55;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ── HERO ── */
+  #home {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    position: relative; overflow: hidden;
+    padding-top: 72px;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: var(--bg);
+    z-index: 0;
+  }
+  /* key visual image fill */
+  .hero-bg img {
+    width: 100%; height: 100%; object-fit: cover;
+    opacity: .38;
+    filter: grayscale(30%);
+  }
+  .hero-bg-placeholder {
+    width: 100%; height: 100%;
+    background: radial-gradient(ellipse at 60% 40%, #1e1e22 0%, #0a0a0b 70%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hero-upload-hint {
+    font-size: 12px; letter-spacing: 3px; color: var(--muted); opacity: .4;
+    pointer-events: none;
+  }
+  .hero-content {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 0 24px;
+  }
+  .hero-eyebrow {
+    font-size: 12px; font-weight: 500; letter-spacing: 4px;
+    color: var(--muted); margin-bottom: 28px;
+  }
+  .hero-title {
+    font-size: clamp(72px, 10vw, 148px);
+    font-weight: 900; line-height: .92;
+    letter-spacing: -4px;
+    color: var(--paper);
+    margin-bottom: 32px;
+  }
+  .hero-sub {
+    font-size: 18px; font-weight: 300; color: rgba(242,240,236,.65);
+    letter-spacing: .3px;
+  }
+  .hero-scroll {
+    position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; letter-spacing: 3px; color: var(--muted); opacity: .5;
+    z-index: 1; animation: bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
+
+  /* hero image upload overlay */
+  .hero-drop-zone {
+    position: absolute; inset: 0; z-index: 2;
+    cursor: pointer;
+    display: flex; align-items: flex-end; justify-content: flex-end;
+    padding: 24px;
+  }
+  .hero-drop-btn {
+    background: rgba(20,20,22,.8);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px; letter-spacing: 1px;
+    padding: 10px 18px; border-radius: 2px;
+    cursor: pointer; backdrop-filter: blur(8px);
+    transition: color .2s, border-color .2s;
+  }
+  .hero-drop-btn:hover { color: var(--paper); border-color: var(--muted); }
+  #heroFileInput { display: none; }
+
+  /* ── SECTIONS ── */
+  section { padding: 120px 48px; }
+
+  .section-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 64px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 20px;
+  }
+  .section-title {
+    font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--muted);
+  }
+  .section-count { font-size: 12px; color: var(--muted); opacity: .6; }
+
+  /* ── STORYBOARD SECTION ── */
+  #storyboard { background: var(--bg); }
+
+  .sb-category { margin-bottom: 100px; }
+  .sb-category-title {
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 300; letter-spacing: -1px;
+    color: var(--paper); text-align: center;
+    margin-bottom: 52px;
+  }
+
+  /* film-strip style: panels scroll horizontally */
+  .sb-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 3px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .sb-panel {
+    background: var(--bg2);
+    position: relative; overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 16 / 9;
+    display: flex; flex-direction: column;
+  }
+  .sb-panel img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
+    filter: grayscale(15%);
+    transition: filter .4s, transform .5s;
+  }
+  .sb-panel:hover img { filter: grayscale(0%); transform: scale(1.03); }
+  .sb-panel-placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(160deg, #1a1a1c, #0f0f10);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    cursor: pointer; transition: background .2s;
+  }
+  .sb-panel-placeholder:hover { background: #1e1e22; }
+  .sb-panel-placeholder svg { opacity: .25; }
+  .sb-panel-placeholder span {
+    font-size: 11px; letter-spacing: 3px; color: var(--muted); opacity: .5;
+  }
+  .sb-panel-meta {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 10px 14px;
+    background: linear-gradient(transparent, rgba(10,10,11,.9));
+    opacity: 0; transition: opacity .3s;
+  }
+  .sb-panel:hover .sb-panel-meta { opacity: 1; }
+  .sb-panel-meta p { font-size: 12px; color: var(--paper); opacity: .8; }
+  .sb-panel-num {
+    position: absolute; top: 10px; left: 12px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    color: var(--muted); opacity: .5;
+  }
+  /* panel controls */
+  .sb-panel-del {
+    position: absolute; top: 8px; right: 8px;
+    width: 24px; height: 24px;
+    background: rgba(10,10,11,.7);
+    border: 1px solid var(--line);
+    color: var(--muted); border-radius: 2px;
+    font-size: 14px; cursor: pointer;
+    display: none; align-items: center; justify-content: center;
+    transition: color .2s;
+  }
+  .sb-panel:hover .sb-panel-del { display: flex; }
+  .sb-panel-del:hover { color: #ef4444; }
+  /* add panel button */
+  .sb-add-panel {
+    background: var(--bg2);
+    aspect-ratio: 16/9;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: 1px dashed var(--line);
+    transition: border-color .2s;
+    font-size: 12px; letter-spacing: 2px; color: var(--muted); opacity: .5;
+  }
+  .sb-add-panel:hover { border-color: var(--muted); opacity: .8; }
+
+  /* sequence note */
+  .sb-note {
+    margin-top: 16px;
+    font-size: 13px; color: var(--muted); letter-spacing: .3px;
+    text-align: center; font-style: italic;
+  }
+  .sb-note[contenteditable="true"]:focus {
+    outline: none; color: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* ── CONCEPT ART GRID ── */
+  #works { background: var(--bg); }
+  .works-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin-bottom: 80px;
+  }
+  .work-cell {
+    background: var(--bg2);
+    position: relative; overflow: hidden;
+    aspect-ratio: 4/3;
+    cursor: pointer;
+  }
+  .work-cell img {
+    width:100%; height:100%; object-fit: cover;
+    transition: transform .5s, filter .4s;
+    filter: grayscale(10%);
+  }
+  .work-cell:hover img { transform: scale(1.04); filter: grayscale(0%); }
+  .work-cell-placeholder {
+    width:100%; height:100%;
+    background: linear-gradient(160deg,#1a1a1c,#0f0f10);
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:8px;
+    cursor:pointer; transition:background .2s;
+  }
+  .work-cell-placeholder:hover { background:#1e1e22; }
+  .work-cell-placeholder span { font-size:11px; letter-spacing:3px; color:var(--muted); opacity:.5; }
+  .work-cell-overlay {
+    position:absolute; inset:0;
+    background: linear-gradient(transparent 50%, rgba(10,10,11,.92));
+    display:flex; flex-direction:column; justify-content:flex-end;
+    padding:18px 16px;
+    opacity:0; transition:opacity .3s;
+  }
+  .work-cell:hover .work-cell-overlay { opacity:1; }
+  .work-cell-tag { font-size:10px; font-weight:700; letter-spacing:2px; color:var(--accent); margin-bottom:4px; }
+  .work-cell-title { font-size:15px; font-weight:500; color:var(--paper); }
+  .work-cell-sub { font-size:12px; color:var(--muted); margin-top:2px; }
+  .work-cell-del {
+    position:absolute; top:8px; right:8px;
+    width:24px; height:24px; background:rgba(10,10,11,.7);
+    border:1px solid var(--line); color:var(--muted); border-radius:2px;
+    font-size:14px; cursor:pointer; display:none;
+    align-items:center; justify-content:center;
+  }
+  .work-cell:hover .work-cell-del { display:flex; }
+  .work-cell-del:hover { color:#ef4444; }
+
+  .works-subhead {
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 300; letter-spacing: -1px; color: var(--paper);
+    text-align: center; margin-bottom: 40px;
+  }
+  .works-add {
+    aspect-ratio: 4/3;
+    background: var(--bg2);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; border:1px dashed var(--line);
+    font-size:11px; letter-spacing:2px; color:var(--muted); opacity:.5;
+    transition: border-color .2s;
+  }
+  .works-add:hover { border-color:var(--muted); opacity:.8; }
+
+  /* ── ABOUT ── */
+  #about { background: var(--bg); }
+  .about-statement {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 300; letter-spacing: -.5px;
+    text-align: center; margin-bottom: 12px;
+    line-height: 1.25;
+  }
+  .about-statement-en {
+    font-size: 18px; font-weight: 300; color: var(--muted);
+    text-align: center; margin-bottom: 72px;
+    letter-spacing: .3px;
+  }
+  .about-cols {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+    max-width: 880px; margin: 0 auto 80px;
+  }
+  .about-col-ko { font-size: 15px; line-height: 1.75; color: rgba(242,240,236,.85); }
+  .about-col-en { font-size: 15px; line-height: 1.75; color: var(--muted); }
+
+  /* filmography table */
+  .filmography-label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    max-width: 960px; margin: 0 auto 20px;
+  }
+  .filmography-label span:first-child {
+    font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--paper);
+  }
+  .filmography-label span:last-child { font-size: 12px; color: var(--muted); }
+  .filmography {
+    max-width: 960px; margin: 0 auto 32px;
+    border: 1px solid var(--line); border-radius: 3px; overflow: hidden;
+  }
+  .film-row {
+    display: grid; grid-template-columns: 64px 1fr auto;
+    align-items: center; gap: 24px;
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--line);
+    transition: background .2s;
+  }
+  .film-row:last-child { border-bottom: none; }
+  .film-row:nth-child(odd) { background: var(--bg2); }
+  .film-row:hover { background: var(--bg3); }
+  .film-year { font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: .5px; }
+  .film-title { }
+  .film-title-ko { font-size: 17px; font-weight: 500; color: var(--paper); }
+  .film-title-en { font-size: 12px; color: var(--muted); margin-top: 2px; letter-spacing: .3px; }
+  .film-role { font-size: 13px; color: var(--muted); text-align: right; letter-spacing: .2px; }
+  .nda-note {
+    text-align: center; font-size: 12px; color: var(--muted); opacity: .65;
+    max-width: 720px; margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* skills */
+  .skills-wrap {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    max-width: 760px; margin: 64px auto 0;
+  }
+  .skill-chip {
+    padding: 10px 20px;
+    border: 1px solid var(--line); border-radius: 2px;
+    font-size: 13px; font-weight: 500; color: rgba(242,240,236,.85);
+    background: var(--bg2);
+    letter-spacing: .3px;
+  }
+
+  /* ── CONNECT ── */
+  #connect { background: var(--bg); text-align: center; }
+  .connect-title {
+    font-size: clamp(52px, 8vw, 96px);
+    font-weight: 900; letter-spacing: -3px; line-height: .9;
+    margin-bottom: 64px;
+  }
+  .connect-form {
+    max-width: 520px; margin: 0 auto 48px;
+    border: 1px solid var(--line); border-radius: 3px; overflow: hidden;
+  }
+  .connect-form input,
+  .connect-form textarea {
+    display: block; width: 100%;
+    background: var(--bg2); border: none;
+    border-bottom: 1px solid var(--line);
+    color: var(--paper); font-family: var(--font-body); font-size: 15px;
+    padding: 20px 22px;
+    outline: none; resize: none;
+    transition: background .2s;
+  }
+  .connect-form input::placeholder,
+  .connect-form textarea::placeholder { color: var(--muted); }
+  .connect-form input:focus,
+  .connect-form textarea:focus { background: var(--bg3); }
+  .connect-form textarea { height: 140px; border-bottom: none; }
+  .connect-btn {
+    margin-top: 20px;
+    padding: 16px 48px;
+    background: var(--paper); color: var(--bg);
+    border: none; border-radius: 2px;
+    font-size: 14px; font-weight: 600; letter-spacing: 1px;
+    cursor: pointer; transition: opacity .2s;
+  }
+  .connect-btn:hover { opacity: .85; }
+  .connect-info {
+    font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: .3px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 40px 48px;
+    border-top: 1px solid var(--line);
+    background: #060607;
+  }
+  footer .logo { font-size: 13px; font-weight: 900; letter-spacing: 1px; color: var(--paper); }
+  footer .socials { display: flex; gap: 28px; }
+  footer .socials a { font-size: 13px; color: var(--muted); text-decoration: none; letter-spacing: .3px; transition: color .2s; }
+  footer .socials a:hover { color: var(--paper); }
+  footer .copy { font-size: 12px; color: var(--muted); opacity: .55; }
+
+  /* ── LIGHTBOX ── */
+  .lightbox {
+    display: none; position: fixed; inset: 0; z-index: 999;
+    background: rgba(6,6,7,.95); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 90vw; max-height: 88vh; object-fit: contain; }
+  .lightbox-close {
+    position: absolute; top: 24px; right: 28px;
+    font-size: 28px; color: var(--muted); cursor: pointer;
+    background: none; border: none; line-height: 1;
+  }
+  .lightbox-close:hover { color: var(--paper); }
+
+  /* ── EDIT MODE TOGGLE ── */
+  .edit-toggle {
+    position: fixed; bottom: 24px; right: 24px; z-index: 200;
+    padding: 10px 18px; border-radius: 2px;
+    background: var(--bg3); border: 1px solid var(--line);
+    color: var(--muted); font-size: 12px; letter-spacing: 1px; cursor: pointer;
+    backdrop-filter: blur(8px); transition: color .2s, border-color .2s;
+  }
+  .edit-toggle:hover { color: var(--paper); border-color: var(--muted); }
+  .edit-toggle.active { color: var(--accent); border-color: var(--accent); }
+
+  /* responsive */
+  @media (max-width: 900px) {
+    section { padding: 80px 24px; }
+    .works-grid { grid-template-columns: 1fr 1fr; }
+    .about-cols { grid-template-columns: 1fr; gap: 24px; }
+    .film-row { grid-template-columns: 52px 1fr; }
+    .film-role { display: none; }
+    footer { flex-direction: column; gap: 20px; text-align: center; }
+  }
+  @media (max-width: 600px) {
+    nav { gap: 24px; }
+    .hero-title { letter-spacing: -2px; }
+    .works-grid { grid-template-columns: 1fr; }
+    .sb-strip { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .band-inner { animation: none; }
+    * { transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <a href="#home" class="active">Home</a>
+  <a href="#storyboard">Storyboard</a>
+  <a href="#works">Works</a>
+  <a href="#about">About</a>
+  <a href="#connect">Connect</a>
+</nav>
+
+<!-- HERO -->
+<section id="home">
+  <div class="hero-bg">
+    <div class="hero-bg-placeholder" id="heroBgPlaceholder">
+      <span class="hero-upload-hint">KEY VISUAL</span>
+    </div>
+    <img id="heroBgImg" src="" alt="" style="display:none;">
+  </div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">VISUAL CONCEPT · PREVISUALIZATION · SEOUL</p>
+    <h1 class="hero-title">SAE<br>KIM</h1>
+    <p class="hero-sub">Cinematic worlds, designed before the camera rolls.</p>
+  </div>
+
+  <div class="hero-drop-zone" id="heroDropZone" title="클릭해서 키 비주얼 이미지 업로드">
+    <button class="hero-drop-btn" onclick="document.getElementById('heroFileInput').click()">
+      + KEY VISUAL 업로드
+    </button>
+  </div>
+  <input type="file" id="heroFileInput" accept="image/*">
+
+  <div class="hero-scroll">SCROLL ↓</div>
+</section>
+
+<!-- BAND 1 -->
+<div class="band">
+  <div class="band-inner" id="band1">
+    <span>STORYBOARD</span><span>·</span><span>PREVISUALIZATION</span><span>·</span>
+    <span>CONCEPT ART</span><span>·</span><span>VISUAL DEVELOPMENT</span><span>·</span>
+    <span>STORYBOARD</span><span>·</span><span>PREVISUALIZATION</span><span>·</span>
+    <span>CONCEPT ART</span><span>·</span><span>VISUAL DEVELOPMENT</span><span>·</span>
+  </div>
+</div>
+
+<!-- STORYBOARD -->
+<section id="storyboard">
+  <div class="section-header">
+    <span class="section-title">STORYBOARD · PREVIS</span>
+    <span class="section-count" id="sbCount">0 panels</span>
+  </div>
+
+  <!-- Sequence A -->
+  <div class="sb-category" id="seqA">
+    <h2 class="sb-category-title" contenteditable="false" data-placeholder="Sequence Title">
+      Sequence A
+    </h2>
+    <div class="sb-strip" id="stripA"></div>
+    <p class="sb-note" contenteditable="false" data-placeholder="장면 설명 / Scene description...">
+      장면 설명을 여기에 입력하세요. / Click to edit scene description.
+    </p>
+  </div>
+
+  <!-- Sequence B -->
+  <div class="sb-category" id="seqB">
+    <h2 class="sb-category-title" contenteditable="false" data-placeholder="Sequence Title">
+      Sequence B
+    </h2>
+    <div class="sb-strip" id="stripB"></div>
+    <p class="sb-note" contenteditable="false" data-placeholder="장면 설명 / Scene description...">
+      장면 설명을 여기에 입력하세요. / Click to edit scene description.
+    </p>
+  </div>
+</section>
+
+<!-- BAND 2 -->
+<div class="band">
+  <div class="band-inner">
+    <span>CONCEPT ART</span><span>·</span><span>WORLDBUILDING</span><span>·</span>
+    <span>KEY FRAME</span><span>·</span><span>VISUAL DEVELOPMENT</span><span>·</span>
+    <span>CONCEPT ART</span><span>·</span><span>WORLDBUILDING</span><span>·</span>
+    <span>KEY FRAME</span><span>·</span><span>VISUAL DEVELOPMENT</span><span>·</span>
+  </div>
+</div>
+
+<!-- CONCEPT ART / WORKS -->
+<section id="works">
+  <div class="section-header">
+    <span class="section-title">CONCEPT ART · WORKS</span>
+    <span class="section-count" id="worksCount">0 works</span>
+  </div>
+
+  <h2 class="works-subhead">Concept Art</h2>
+  <div class="works-grid" id="worksGridConcept"></div>
+
+  <h2 class="works-subhead" style="margin-top:80px;">Personal Projects</h2>
+  <div class="works-grid" id="worksGridPersonal"></div>
+</section>
+
+<!-- BAND 3 -->
+<div class="band">
+  <div class="band-inner">
+    <span>ABOUT</span><span>·</span><span>FILMOGRAPHY</span><span>·</span>
+    <span>SEOUL</span><span>·</span><span>2013 — 2025</span><span>·</span>
+    <span>ABOUT</span><span>·</span><span>FILMOGRAPHY</span><span>·</span>
+    <span>SEOUL</span><span>·</span><span>2013 — 2025</span><span>·</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-header">
+    <span class="section-title">ABOUT</span>
+  </div>
+
+  <p class="about-statement">카메라가 닿기 전,<br>세계를 먼저 그립니다.</p>
+  <p class="about-statement-en">I design worlds before the camera finds them.</p>
+
+  <div class="about-cols">
+    <p class="about-col-ko">
+      서울 기반의 영화 컨셉 기획 및 프리비주얼라이제이션 아티스트. 초기 비주얼 개발부터 스토리보드, 키프레임, 프리비주얼라이제이션까지 — 영화의 톤과 서사를 카메라가 따라갈 이미지로 옮깁니다. 전통적인 컨셉 작업에 Midjourney · ComfyUI 기반 AI 워크플로우를 결합합니다.
+    </p>
+    <p class="about-col-en">
+      Seoul-based film concept and previsualization artist. From storyboard to key frames and previs, I translate a film's tone and story into images the camera can follow — combining traditional concept craft with AI-assisted workflows (Midjourney, ComfyUI).
+    </p>
+  </div>
+
+  <div class="filmography-label">
+    <span>FILMOGRAPHY · 주요 작품</span>
+    <span>2013 — 2025</span>
+  </div>
+  <div class="filmography">
+    <div class="film-row">
+      <span class="film-year">2025</span>
+      <div class="film-title">
+        <div class="film-title-ko">하이파이브</div>
+        <div class="film-title-en">High Five</div>
+      </div>
+      <span class="film-role">Visual Concept Development Artist</span>
+    </div>
+    <div class="film-row">
+      <span class="film-year">2023</span>
+      <div class="film-title">
+        <div class="film-title-ko">콘크리트 유토피아</div>
+        <div class="film-title-en">Concrete Utopia</div>
+      </div>
+      <span class="film-role">Visual Concept Development Artist</span>
+    </div>
+    <div class="film-row">
+      <span class="film-year">2023</span>
+      <div class="film-title">
+        <div class="film-title-ko">비공식작전</div>
+        <div class="film-title-en">Unofficial Operation</div>
+      </div>
+      <span class="film-role">Visual Concept Art Lead</span>
+    </div>
+    <div class="film-row">
+      <span class="film-year">2023</span>
+      <div class="film-title">
+        <div class="film-title-ko">정이</div>
+        <div class="film-title-en">JUNG_E</div>
+      </div>
+      <span class="film-role">Visual Concept Development Artist</span>
+    </div>
+    <div class="film-row">
+      <span class="film-year">2022</span>
+      <div class="film-title">
+        <div class="film-title-ko">서울대작전</div>
+        <div class="film-title-en">Seoul Vibe</div>
+      </div>
+      <span class="film-role">Visual Concept Development Artist</span>
+    </div>
+    <div class="film-row">
+      <span class="film-year">2021</span>
+      <div class="film-title">
+        <div class="film-title-ko">간호중</div>
+        <div class="film-title-en">Nursing</div>
+      </div>
+      <span class="film-role">Visual Concept Development Artist</span>
+    </div>
+    <div class="film-row">
+      <span class="film-year">2020</span>
+      <div class="film-title">
+        <div class="film-title-ko">다만 악에서 구하소서</div>
+        <div class="film-title-en">Deliver Us from Evil</div>
+      </div>
+      <span class="film-role">Visual Concept Development Artist</span>
+    </div>
+    <div class="film-row">
+      <span class="film-year">2013</span>
+      <div class="film-title">
+        <div class="film-title-ko">미스터 고</div>
+        <div class="film-title-en">Mr. Go · Debut</div>
+      </div>
+      <span class="film-role">Previsual Artist</span>
+    </div>
+  </div>
+
+  <p class="nda-note">
+    크레딧 작품의 비주얼 레퍼런스는 NDA로 보호되며 요청 시 비공개로 공유됩니다.<br>
+    Visual references for credited productions are under NDA and shared privately on request.
+  </p>
+
+  <div class="skills-wrap">
+    <span class="skill-chip">Storyboard</span>
+    <span class="skill-chip">Previsualization</span>
+    <span class="skill-chip">Concept Art</span>
+    <span class="skill-chip">Visual Development</span>
+    <span class="skill-chip">Key Frame</span>
+    <span class="skill-chip">Midjourney</span>
+    <span class="skill-chip">ComfyUI</span>
+    <span class="skill-chip">Photoshop</span>
+  </div>
+</section>
+
+<!-- BAND 4 -->
+<div class="band">
+  <div class="band-inner">
+    <span>LET'S TALK</span><span>·</span><span>CONNECT</span><span>·</span>
+    <span>서울</span><span>·</span><span>WORLDWIDE</span><span>·</span>
+    <span>LET'S TALK</span><span>·</span><span>CONNECT</span><span>·</span>
+    <span>서울</span><span>·</span><span>WORLDWIDE</span><span>·</span>
+  </div>
+</div>
+
+<!-- CONNECT -->
+<section id="connect">
+  <h2 class="connect-title">LET'S<br>BUILD<br>SOMETHING.</h2>
+  <form class="connect-form" onsubmit="handleSubmit(event)">
+    <input type="text" placeholder="Name / 이름" required>
+    <input type="email" placeholder="Email" required>
+    <textarea placeholder="Tell me about your project… / 프로젝트를 알려주세요" required></textarea>
+  </form>
+  <button class="connect-btn" onclick="handleSubmit(event)">Send</button>
+  <p class="connect-info" style="margin-top:32px;">saesunshinebucket@gmail.com &nbsp;·&nbsp; Seoul, KR</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="logo">SAE KIM</span>
+  <div class="socials">
+    <a href="#">ArtStation</a>
+    <a href="#">Instagram</a>
+    <a href="#">LinkedIn</a>
+  </div>
+  <span class="copy">© 2026 Sae Kim</span>
+</footer>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()">×</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<!-- EDIT MODE TOGGLE -->
+<button class="edit-toggle" id="editToggle" onclick="toggleEditMode()">EDIT MODE</button>
+
+<!-- HIDDEN FILE INPUTS -->
+<input type="file" id="sbFileInput" accept="image/*" multiple style="display:none;">
+<input type="file" id="worksFileInput" accept="image/*" multiple style="display:none;">
+
+<script>
+// ── STATE ──
+let editMode = false;
+let currentStrip = null;
+let currentWorksGrid = null;
+let lightboxImages = [];
+let lightboxIndex = 0;
+
+// storyboard panel metadata
+const panelMeta = { A: [], B: [] };
+const worksMeta = { concept: [], personal: [] };
+
+// ── NAV SCROLL HIGHLIGHT ──
+const nav = document.getElementById('main-nav');
+const sections = document.querySelectorAll('section[id], #home');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  document.querySelectorAll('nav a').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+}, { passive: true });
+
+// ── HERO KEY VISUAL ──
+document.getElementById('heroFileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img = document.getElementById('heroBgImg');
+  img.src = url; img.style.display = 'block';
+  document.getElementById('heroBgPlaceholder').style.display = 'none';
+});
+
+// ── EDIT MODE ──
+function toggleEditMode() {
+  editMode = !editMode;
+  const btn = document.getElementById('editToggle');
+  btn.textContent = editMode ? 'DONE' : 'EDIT MODE';
+  btn.classList.toggle('active', editMode);
+
+  // enable contenteditable on titles/notes
+  document.querySelectorAll('.sb-category-title, .sb-note').forEach(el => {
+    el.contentEditable = editMode ? 'true' : 'false';
+  });
+
+  // show/hide add buttons and delete buttons
+  document.querySelectorAll('.sb-add-panel, .works-add').forEach(el => {
+    el.style.display = editMode ? 'flex' : 'none';
+  });
+  if (!editMode) {
+    document.querySelectorAll('.sb-panel-del, .work-cell-del').forEach(el => {
+      el.style.display = 'none';
+    });
+  }
+  updateCounts();
+}
+
+// ── STORYBOARD PANELS ──
+function initStrip(stripId, seqKey) {
+  const strip = document.getElementById(stripId);
+  strip.innerHTML = '';
+  // add button (hidden until edit mode)
+  const addBtn = document.createElement('div');
+  addBtn.className = 'sb-add-panel';
+  addBtn.textContent = '+ ADD PANEL';
+  addBtn.style.display = 'none';
+  addBtn.onclick = () => {
+    currentStrip = { el: strip, key: seqKey };
+    document.getElementById('sbFileInput').click();
+  };
+  strip.appendChild(addBtn);
+}
+
+initStrip('stripA', 'A');
+initStrip('stripB', 'B');
+
+document.getElementById('sbFileInput').addEventListener('change', e => {
+  const files = Array.from(e.target.files);
+  if (!currentStrip || !files.length) return;
+  files.forEach(file => addSBPanel(currentStrip.el, currentStrip.key, file));
+  e.target.value = '';
+  updateCounts();
+});
+
+function addSBPanel(strip, key, file) {
+  const url = URL.createObjectURL(file);
+  const idx = strip.querySelectorAll('.sb-panel').length + 1;
+
+  const panel = document.createElement('div');
+  panel.className = 'sb-panel';
+  panel.dataset.src = url;
+
+  const img = document.createElement('img');
+  img.src = url; img.alt = 'Panel ' + idx;
+  img.onclick = () => openLightbox(url);
+
+  const num = document.createElement('span');
+  num.className = 'sb-panel-num';
+  num.textContent = String(idx).padStart(2, '0');
+
+  const meta = document.createElement('div');
+  meta.className = 'sb-panel-meta';
+  meta.innerHTML = `<p contenteditable="false">CUT ${String(idx).padStart(2,'0')} — 카메라 노트</p>`;
+
+  const del = document.createElement('button');
+  del.className = 'sb-panel-del';
+  del.textContent = '×';
+  del.title = '삭제';
+  del.onclick = (e) => { e.stopPropagation(); panel.remove(); updateCounts(); renumberPanels(strip); };
+
+  panel.appendChild(img);
+  panel.appendChild(num);
+  panel.appendChild(meta);
+  panel.appendChild(del);
+
+  // insert before add button
+  strip.insertBefore(panel, strip.lastElementChild);
+  updateCounts();
+}
+
+function renumberPanels(strip) {
+  strip.querySelectorAll('.sb-panel').forEach((p, i) => {
+    p.querySelector('.sb-panel-num').textContent = String(i + 1).padStart(2, '0');
+  });
+}
+
+// ── WORKS GRIDS ──
+function initWorksGrid(gridId) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  const addBtn = document.createElement('div');
+  addBtn.className = 'works-add';
+  addBtn.textContent = '+ ADD IMAGE';
+  addBtn.style.display = 'none';
+  addBtn.onclick = () => {
+    currentWorksGrid = grid;
+    document.getElementById('worksFileInput').click();
+  };
+  grid.appendChild(addBtn);
+}
+
+initWorksGrid('worksGridConcept');
+initWorksGrid('worksGridPersonal');
+
+document.getElementById('worksFileInput').addEventListener('change', e => {
+  const files = Array.from(e.target.files);
+  if (!currentWorksGrid || !files.length) return;
+  files.forEach(file => addWorkCell(currentWorksGrid, file));
+  e.target.value = '';
+  updateCounts();
+});
+
+function addWorkCell(grid, file) {
+  const url = URL.createObjectURL(file);
+  const name = file.name.replace(/\.[^/.]+$/, '');
+
+  const cell = document.createElement('div');
+  cell.className = 'work-cell';
+  cell.dataset.src = url;
+
+  const img = document.createElement('img');
+  img.src = url; img.alt = name;
+  img.onclick = () => openLightbox(url);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'work-cell-overlay';
+  overlay.innerHTML = `
+    <span class="work-cell-tag">CONCEPT</span>
+    <span class="work-cell-title" contenteditable="false">${name}</span>
+    <span class="work-cell-sub" contenteditable="false">Personal / Edit to update</span>`;
+
+  const del = document.createElement('button');
+  del.className = 'work-cell-del';
+  del.textContent = '×';
+  del.onclick = (e) => { e.stopPropagation(); cell.remove(); updateCounts(); };
+
+  cell.appendChild(img); cell.appendChild(overlay); cell.appendChild(del);
+  grid.insertBefore(cell, grid.lastElementChild);
+  updateCounts();
+}
+
+// ── COUNTS ──
+function updateCounts() {
+  const sbPanels = document.querySelectorAll('.sb-panel').length;
+  document.getElementById('sbCount').textContent = sbPanels + ' panels';
+  const works = document.querySelectorAll('.work-cell').length;
+  document.getElementById('worksCount').textContent = works + ' works';
+}
+updateCounts();
+
+// ── LIGHTBOX ──
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+document.getElementById('lightbox').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeLightbox();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// ── CONTACT ──
+function handleSubmit(e) {
+  e.preventDefault();
+  alert('메시지가 전송되었습니다. 감사합니다!\nMessage sent — thank you!');
+}
+
+// ── DRAG & DROP HERO ──
+const dropZone = document.getElementById('heroDropZone');
+['dragenter','dragover'].forEach(ev => {
+  dropZone.addEventListener(ev, e => { e.preventDefault(); });
+});
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  const url = URL.createObjectURL(file);
+  const img = document.getElementById('heroBgImg');
+  img.src = url; img.style.display = 'block';
+  document.getElementById('heroBgPlaceholder').style.display = 'none';
+});
+</script>
+</body>
+</html>
