@@ -6,12 +6,12 @@
 <title>Sae Kim — Visual Concept & Previs Artist</title>
 <style>
 :root {
-  --bg:     #0A0A0B;
-  --bg2:    #131315;
-  --bg3:    #1C1C1F;
-  --line:   #2A2A2E;
-  --paper:  #F2F0EC;
-  --muted:  #7A7873;
+  --bg:     #F4F2EE;
+  --bg2:    #ECEAE5;
+  --bg3:    #E2DFD9;
+  --line:   #D4D0C8;
+  --paper:  #1A1917;
+  --muted:  #8A8680;
   --accent: #C2410C;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,7 +30,7 @@ nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; justify-content: center; align-items: center; gap: 52px;
   height: 72px;
-  background: rgba(10,10,11,0.88);
+  background: rgba(244,242,238,0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid transparent;
@@ -86,7 +86,7 @@ nav a.active { color: var(--paper); }
 }
 .hero-image-layer .hero-ph {
   width: 100%; height: 100%;
-  background: radial-gradient(ellipse 80% 60% at 60% 40%, #1e1e24 0%, #0a0a0b 75%);
+  background: radial-gradient(ellipse 80% 60% at 60% 40%, #e8e4dc 0%, #f4f2ee 75%);
   display: flex; align-items: center; justify-content: center;
 }
 .hero-image-layer .hero-ph span {
@@ -108,12 +108,12 @@ nav a.active { color: var(--paper); }
 }
 .hero-sub {
   font-size: 18px; font-weight: 300;
-  color: rgba(242,240,236,.6); letter-spacing: .3px;
+  color: rgba(26,25,23,.55); letter-spacing: .3px;
 }
 .hero-name {
   margin-top: 48px;
   font-size: 14px; font-weight: 700; letter-spacing: 3px;
-  color: rgba(242,240,236,.5);
+  color: rgba(26,25,23,.45);
 }
 .hero-scroll {
   position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
@@ -128,7 +128,7 @@ nav a.active { color: var(--paper); }
 .hero-upload-btn {
   position: absolute; bottom: 28px; right: 32px; z-index: 2;
   padding: 9px 16px; border-radius: 2px;
-  background: rgba(20,20,22,.75);
+  background: rgba(244,242,238,.82);
   border: 1px solid var(--line);
   color: var(--muted); font-size: 11px; letter-spacing: 1.5px;
   cursor: pointer; backdrop-filter: blur(8px);
@@ -185,7 +185,7 @@ section { padding: 120px 64px; background: var(--bg); }
 .sb-panel-del {
   position: absolute; top: 8px; right: 8px;
   width: 26px; height: 26px;
-  background: rgba(10,10,11,.75); border: 1px solid var(--line);
+  background: rgba(244,242,238,.85); border: 1px solid var(--line);
   color: var(--muted); border-radius: 2px;
   font-size: 16px; cursor: pointer;
   display: none; align-items: center; justify-content: center;
@@ -196,9 +196,9 @@ section { padding: 120px 64px; background: var(--bg); }
 .sb-panel-caption {
   position: absolute; bottom: 0; left: 0; right: 0;
   padding: 10px 14px 12px;
-  background: linear-gradient(transparent, rgba(10,10,11,.88));
+  background: linear-gradient(transparent, rgba(244,242,238,.92));
   opacity: 0; transition: opacity .3s;
-  font-size: 12px; color: rgba(242,240,236,.75);
+  font-size: 12px; color: rgba(26,25,23,.75);
   outline: none; cursor: text;
 }
 .sb-panel:hover .sb-panel-caption { opacity: 1; }
@@ -245,7 +245,7 @@ section { padding: 120px 64px; background: var(--bg); }
 .work-cell:hover img { filter: grayscale(0%); transform: scale(1.04); }
 .work-cell-info {
   position: absolute; inset: 0;
-  background: linear-gradient(transparent 45%, rgba(10,10,11,.92));
+  background: linear-gradient(transparent 45%, rgba(244,242,238,.94));
   display: flex; flex-direction: column; justify-content: flex-end;
   padding: 18px 16px;
   opacity: 0; transition: opacity .3s;
@@ -266,7 +266,7 @@ section { padding: 120px 64px; background: var(--bg); }
 .work-cell-del {
   position: absolute; top: 8px; right: 8px;
   width: 26px; height: 26px;
-  background: rgba(10,10,11,.75); border: 1px solid var(--line);
+  background: rgba(244,242,238,.85); border: 1px solid var(--line);
   color: var(--muted); border-radius: 2px; font-size: 16px;
   cursor: pointer; display: none; align-items: center; justify-content: center;
   transition: color .2s;
@@ -298,7 +298,7 @@ section { padding: 120px 64px; background: var(--bg); }
   display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
   max-width: 860px; margin: 0 auto 80px;
 }
-.about-bio-ko { font-size: 15px; line-height: 1.78; color: rgba(242,240,236,.82); }
+.about-bio-ko { font-size: 15px; line-height: 1.78; color: rgba(26,25,23,.82); }
 .about-bio-en { font-size: 15px; line-height: 1.78; color: var(--muted); }
 .film-header {
   display: flex; justify-content: space-between; align-items: baseline;
@@ -336,9 +336,9 @@ section { padding: 120px 64px; background: var(--bg); }
   max-width: 720px; margin: 0 auto;
 }
 .skill-chip {
-  padding: 10px 22px; border: 1px solid var(--line); border-radius: 2px;
+  padding: 10px 22px; border: 1px solid #1A1917; border-radius: 2px;
   font-size: 13px; font-weight: 500;
-  color: rgba(242,240,236,.82); background: var(--bg2);
+  color: #F2F0EC; background: #1A1917;
 }
 
 /* ── CONNECT ── */
@@ -384,7 +384,7 @@ footer {
   display: flex; justify-content: space-between; align-items: center;
   padding: 36px 64px;
   border-top: 1px solid var(--line);
-  background: #060607;
+  background: #ECEAE5;
 }
 .footer-logo { font-size: 13px; font-weight: 900; letter-spacing: 2px; color: var(--paper); }
 .footer-links { display: flex; gap: 28px; }
@@ -398,7 +398,7 @@ footer {
 /* ── LIGHTBOX ── */
 .lb {
   display: none; position: fixed; inset: 0; z-index: 999;
-  background: rgba(6,6,7,.96); backdrop-filter: blur(6px);
+  background: rgba(244,242,238,.96); backdrop-filter: blur(6px);
   align-items: center; justify-content: center;
 }
 .lb.open { display: flex; }
@@ -415,7 +415,7 @@ footer {
 .edit-btn {
   position: fixed; bottom: 24px; right: 24px; z-index: 200;
   padding: 10px 18px; border-radius: 2px;
-  background: var(--bg3); border: 1px solid var(--line);
+  background: var(--bg2); border: 1px solid var(--line);
   color: var(--muted); font-size: 11px; letter-spacing: 1.5px;
   cursor: pointer; backdrop-filter: blur(8px);
   transition: color .2s, border-color .2s;
@@ -481,11 +481,17 @@ footer {
   <span>CONCEPT ART</span><span>·</span><span>VISUAL DEVELOPMENT</span><span>·</span>
 </div></div>
 
-<!-- WORKS (Storyboard + Concept Art + Personal Projects) -->
+<!-- WORKS -->
 <section id="works">
   <div class="sec-header">
     <span class="sec-label">WORKS</span>
     <span class="sec-count" id="worksCount">0 works</span>
+  </div>
+
+  <!-- CONCEPT ART -->
+  <div class="works-cat">
+    <h2 class="works-cat-title">Concept Art</h2>
+    <div class="works-grid" id="gridConcept"></div>
   </div>
 
   <!-- STORYBOARD -->
@@ -505,10 +511,10 @@ footer {
     </div>
   </div>
 
-  <!-- CONCEPT ART -->
+  <!-- PROFESSIONAL WORK -->
   <div class="works-cat">
-    <h2 class="works-cat-title">Concept Art</h2>
-    <div class="works-grid" id="gridConcept"></div>
+    <h2 class="works-cat-title">Professional Work</h2>
+    <div class="works-grid" id="gridPro"></div>
   </div>
 
   <!-- PERSONAL PROJECTS -->
@@ -531,11 +537,11 @@ footer {
   <div class="sec-header">
     <span class="sec-label">ABOUT</span>
   </div>
-  <p class="about-stmt-ko">카메라가 닿기 전,<br>세계를 먼저 그립니다.</p>
+  <p class="about-stmt-ko">카메라가 닿기 전,<br>아이디어를 시각적 언어로 구현하고,<br>브랜드와 감정을 연결해 비주얼을 구축합니다.</p>
   <p class="about-stmt-en">I design worlds before the camera finds them.</p>
   <div class="about-bio">
-    <p class="about-bio-ko">서울 기반의 영화 컨셉 기획 및 프리비주얼라이제이션 아티스트. 초기 비주얼 개발부터 스토리보드, 키프레임, 프리비주얼라이제이션까지 — 영화의 톤과 서사를 카메라가 따라갈 이미지로 옮깁니다. 전통적인 컨셉 작업에 Midjourney · ComfyUI 기반 AI 워크플로우를 결합합니다.</p>
-    <p class="about-bio-en">Seoul-based film concept and previsualization artist. From storyboard to key frames and previs, I translate a film's tone and story into images the camera can follow — combining traditional concept craft with AI-assisted workflows (Midjourney, ComfyUI).</p>
+    <p class="about-bio-ko">영화 컨셉 기획 및 비주얼 컨셉 아트. 초기 비주얼 개발부터 키프레임, 프리비주얼라이제이션까지 영화의 톤과 서사를 컨셉 아트로 담아냅니다. 전통적인 컨셉 작업과 Midjourney·ComfyUI 기반 AI 워크플로우를 이용해 보다 더 좋은 결과물을 만듭니다.</p>
+    <p class="about-bio-en">Film concept and visual concept artist. From early visual development to key frames and previsualization, I capture a film's tone and story through concept art — combining traditional concept craft with AI-assisted workflows (Midjourney, ComfyUI) to deliver stronger results.</p>
   </div>
   <div class="film-header">
     <span>FILMOGRAPHY · 주요 작품</span>
@@ -551,7 +557,7 @@ footer {
     <div class="film-row"><span class="film-year">2020</span><div><div class="film-ko">다만 악에서 구하소서</div><div class="film-en">Deliver Us from Evil</div></div><span class="film-role">Visual Concept Development Artist</span></div>
     <div class="film-row"><span class="film-year">2013</span><div><div class="film-ko">미스터 고</div><div class="film-en">Mr. Go · Debut</div></div><span class="film-role">Previsual Artist</span></div>
   </div>
-  <p class="nda-note">크레딧 작품의 비주얼 레퍼런스는 NDA로 보호되며 요청 시 비공개로 공유됩니다.<br>Visual references for credited productions are under NDA and shared privately on request.</p>
+  <p class="nda-note">비공개 작품 및 별도의 비주얼 레퍼런스는 NDA로 보호되며 요청 시 비공개로 공유됩니다.<br>Visual references for credited productions are under NDA and shared privately on request.</p>
   <div class="skills">
     <span class="skill-chip">Storyboard</span>
     <span class="skill-chip">Previsualization</span>
@@ -697,6 +703,7 @@ function initWorksGrid(gridId) {
 initSbGrid('gridA','A');
 initSbGrid('gridB','B');
 initWorksGrid('gridConcept');
+initWorksGrid('gridPro');
 initWorksGrid('gridPersonal');
 
 // ── ADD STORYBOARD PANEL ──
