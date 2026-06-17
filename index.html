@@ -70,65 +70,69 @@ nav a.active { color: var(--paper); }
 
 /* ── HERO ── */
 #home {
-  min-height: 100vh;
-  position: relative; overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; flex-direction: column;
   padding-top: 72px;
+  background: var(--bg);
+}
+.hero-top {
+  background: var(--bg);
+  text-align: center;
+  padding: 56px 24px 0;
+  position: relative; z-index: 2;
+}
+.hero-eyebrow { display: none; }
+.hero-title {
+  font-size: clamp(72px, 12vw, 168px);
+  font-weight: 900; line-height: .88;
+  letter-spacing: -6px; color: var(--paper);
+  margin-bottom: -0.08em; /* pulls title down to overlap image */
 }
 .hero-image-layer {
-  position: absolute; inset: 0; z-index: 0;
-  background: var(--bg);
+  width: 100%;
+  height: 68vh;
+  min-height: 460px;
+  position: relative; overflow: hidden;
+  background: var(--bg2);
+  z-index: 1;
 }
 .hero-image-layer img {
   width: 100%; height: 100%; object-fit: cover;
-  opacity: .42; filter: grayscale(20%);
   display: block;
+  filter: grayscale(5%);
 }
 .hero-image-layer .hero-ph {
   width: 100%; height: 100%;
-  background: radial-gradient(ellipse 80% 60% at 60% 40%, #e8e4dc 0%, #f4f2ee 75%);
+  background: var(--bg2);
   display: flex; align-items: center; justify-content: center;
 }
 .hero-image-layer .hero-ph span {
   font-size: 11px; letter-spacing: 4px; color: var(--muted); opacity: .35;
 }
-.hero-content {
-  position: relative; z-index: 1;
-  text-align: center; padding: 0 24px;
-}
-.hero-eyebrow {
-  font-size: 12px; font-weight: 500; letter-spacing: 4px;
-  color: var(--muted); margin-bottom: 32px; display: block;
-}
-.hero-title {
-  font-size: clamp(80px, 11vw, 156px);
-  font-weight: 900; line-height: .9;
-  letter-spacing: -5px; color: var(--paper);
-  margin-bottom: 36px;
-}
-.hero-sub {
-  font-size: 18px; font-weight: 300;
-  color: rgba(26,25,23,.55); letter-spacing: .3px;
+/* name + role overlay at bottom of image */
+.hero-bottom-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 6px;
+  padding: 32px 24px 24px;
+  background: linear-gradient(transparent, rgba(244,242,238,.72));
+  z-index: 2;
 }
 .hero-name {
-  margin-top: 48px;
-  font-size: 14px; font-weight: 700; letter-spacing: 3px;
-  color: rgba(26,25,23,.45);
+  font-size: 13px; font-weight: 700; letter-spacing: 3px;
+  color: var(--paper);
 }
-.hero-scroll {
-  position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
-  font-size: 11px; letter-spacing: 3px; color: var(--muted); opacity: .45;
-  z-index: 1; animation: bob 2.6s ease-in-out infinite;
+.hero-role {
+  font-size: 11px; font-weight: 500; letter-spacing: 3px;
+  color: var(--paper); opacity: .7;
 }
-@keyframes bob {
-  0%,100% { transform: translateX(-50%) translateY(0); }
-  50%      { transform: translateX(-50%) translateY(7px); }
-}
+.hero-divider { display: none; }
+.hero-sub { display: none; }
+.hero-scroll { display: none; }
 /* hero upload */
 .hero-upload-btn {
-  position: absolute; bottom: 28px; right: 32px; z-index: 2;
-  padding: 9px 16px; border-radius: 2px;
-  background: rgba(244,242,238,.82);
+  position: absolute; bottom: 14px; right: 16px; z-index: 3;
+  padding: 8px 14px; border-radius: 2px;
+  background: rgba(244,242,238,.88);
   border: 1px solid var(--line);
   color: var(--muted); font-size: 11px; letter-spacing: 1.5px;
   cursor: pointer; backdrop-filter: blur(8px);
@@ -458,19 +462,19 @@ footer {
 
 <!-- HERO -->
 <section id="home">
+  <div class="hero-top">
+    <h1 class="hero-title">VISUAL<br>CONCEPT<br>ARTIST</h1>
+  </div>
   <div class="hero-image-layer" id="heroBg">
     <div class="hero-ph" id="heroPh"><span>KEY VISUAL</span></div>
     <img id="heroImg" src="" alt="" style="display:none;">
+    <div class="hero-bottom-bar">
+      <span class="hero-name">SAE KIM</span>
+      <span class="hero-role">CONCEPT ART · PREVISUALIZATION · STORYBOARD</span>
+    </div>
+    <button class="hero-upload-btn" onclick="document.getElementById('heroInput').click()">+ KEY VISUAL</button>
+    <input type="file" id="heroInput" accept="image/*">
   </div>
-  <div class="hero-content">
-    <span class="hero-eyebrow">CONCEPT ART · PREVISUALIZATION · STORYBOARD</span>
-    <h1 class="hero-title">VISUAL<br>CONCEPT<br>ARTIST</h1>
-    <p class="hero-sub">Cinematic worlds, designed before the camera rolls.</p>
-    <p class="hero-name">SAE KIM</p>
-  </div>
-  <button class="hero-upload-btn" onclick="document.getElementById('heroInput').click()">+ KEY VISUAL</button>
-  <input type="file" id="heroInput" accept="image/*">
-  <div class="hero-scroll">SCROLL ↓</div>
 </section>
 
 <!-- BAND -->
@@ -642,9 +646,9 @@ document.getElementById('heroInput').addEventListener('change', e => {
 });
 
 // drag-drop hero
-const homeSec = document.getElementById('home');
-['dragenter','dragover'].forEach(ev => homeSec.addEventListener(ev, e => e.preventDefault()));
-homeSec.addEventListener('drop', e => {
+const heroBgEl = document.getElementById('heroBg');
+['dragenter','dragover'].forEach(ev => heroBgEl.addEventListener(ev, e => e.preventDefault()));
+heroBgEl.addEventListener('drop', e => {
   e.preventDefault();
   const f = e.dataTransfer.files[0];
   if (!f || !f.type.startsWith('image/')) return;
