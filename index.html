@@ -226,7 +226,7 @@ input[type=file]{display:none;}
   <div class="hero-image-layer" id="heroBg">
     <div class="hero-ph" id="heroPh">
       <span>KEY VISUAL</span>
-      <button class="hero-ph-btn" onclick="document.getElementById('heroFileInput').click()">+ 이미지 업로드</button>
+      <button class="hero-ph-btn" onclick="editMode?document.getElementById('heroFileInput').click():alert('⚙ MANAGE 모드에서만 이미지를 업로드할 수 있습니다.')">+ 이미지 업로드</button>
     </div>
     <img id="heroImg" src="images/hero.jpg" alt=""
       onload="this.style.display='block';document.getElementById('heroPh').style.display='none';"
@@ -405,7 +405,7 @@ window.addEventListener('scroll',()=>{
 
 // ── HERO ──
 document.getElementById('heroFileInput').addEventListener('change',e=>{
-  const f=e.target.files[0]; if(!f) return;
+  const f=e.target.files[0]; if(!f||!editMode) return;
   const url=URL.createObjectURL(f);
   const img=document.getElementById('heroImg');
   img.src=url; img.style.display='block';
@@ -425,7 +425,7 @@ document.getElementById('heroBg').addEventListener('drop',e=>{
 
 // ── EDIT MODE ──
 // ── PASSWORD ──
-const PW = 'saekim2026'; // ← 여기서 비밀번호 변경
+const PW = '1223'; // ← 여기서 비밀번호 변경
 
 function toggleEdit(){
   if(editMode){ exitEdit(); return; }
@@ -733,9 +733,10 @@ function dzDropModal(e){
   renderGrid(currentProjKey);
 }
 
-// hero drag-drop (always on)
+// hero drag-drop (MANAGE 모드에서만)
 document.getElementById('heroBg').addEventListener('dragover', e=>{
   e.preventDefault();
+  if(!editMode) return;
   document.getElementById('heroBg').style.outline='2px dashed var(--paper)';
 });
 document.getElementById('heroBg').addEventListener('dragleave', ()=>{
@@ -744,6 +745,7 @@ document.getElementById('heroBg').addEventListener('dragleave', ()=>{
 document.getElementById('heroBg').addEventListener('drop', e=>{
   e.preventDefault();
   document.getElementById('heroBg').style.outline='';
+  if(!editMode) return;
   const f = e.dataTransfer.files[0];
   if(!f||!f.type.startsWith('image/')) return;
   const url = URL.createObjectURL(f);
