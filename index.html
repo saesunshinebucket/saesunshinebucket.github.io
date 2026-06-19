@@ -614,7 +614,22 @@ function fileToBase64(file) {
   });
 }
 
-
+async function processImage(file, filenameHint) {
+  // Drive 연결 시 Drive에 업로드 후 URL 반환, 미연결 시 base64 fallback
+  if (googleAccessToken && driveFolderId) {
+    try {
+      const base64 = await fileToBase64(file);
+      const encoded = base64.split(',')[1];
+      const fileId = await saveToDriveAndGetId(file.name || filenameHint || 'image.jpg', encoded, file.type);
+      if (fileId) {
+        return 'https://drive.google.com/uc?export=view&id=' + fileId;
+      }
+    } catch(err) {
+      console.warn('Drive processImage failed, fallback to base64:', err);
+    }
+  }
+  return await fileToBase64(file);
+}
 async function processImage(file, filenameHint) {
   return await fileToBase64(file);
 }
