@@ -438,16 +438,36 @@ function initGoogleApi() {
     client_id: GOOGLE_CLIENT_ID,
     scope: SCOPES,
     callback: async (resp) => {
-      if (resp.error) { showDriveStatus('⚠️ 로그인 실패'); return; }
+      if (resp.error) {
+        // silent sign-in 실패 시 (토큰 없거나 만료) — 상태만 업데이트
+        if (resp.error === 'user_signed_out' || resp.error === 'access_denied' || resp.error === 'interaction_required') {
+          googleAccessToken = null;
+          driveFolderId = null;
+          localStorage.removeItem('gd_token');
+          showDriveStatus('☁️ 연결 안됨');
+          updateDriveBar();
+        } else {
+          showDriveStatus('⚠️ 로그인 실패');
+        }
+        return;
+      }
       googleAccessToken = resp.access_token;
       gapi.client.setToken({ access_token: googleAccessToken });
       localStorage.setItem('gd_token', googleAccessToken);
-      showDriveStatus('☁️ 연결 중...');
-      await getOrCreateDriveFolder();
+      // 이미 폴더가 있으면 재사용, 없으면 생성
+      if (!driveFolderId) {
+        showDriveStatus('☁️ 연결 중...');
+        await getOrCreateDriveFolder();
+      }
       showDriveStatus('☁️ 드라이브 연결됨');
       updateDriveBar();
       // Drive에서 최신 데이터 불러오기
       await loadFromDrive();
+      // 토큰 자동 갱신 시작 (중복 방지)
+      if (!window._tokenRefreshStarted) {
+        window._tokenRefreshStarted = true;
+        startTokenRefresh();
+      }
     }
   });
   gsiReady = true;
@@ -455,27 +475,29 @@ function initGoogleApi() {
 }
 
 
+
+// 토큰 만료 시 팝업 없이 자동 갱신
+function silentSignIn() {
+  if (!tokenClient) return;
+  showDriveStatus('☁️ 자동 연결 중...');
+  // prompt:'none' 으로 팝업 없이 토큰 갱신 시도
+  tokenClient.requestAccessToken({ prompt: 'none' });
+}
+
+// 토큰 만료 감지 및 자동 갱신 (55분마다)
+function startTokenRefresh() {
+  setInterval(() => {
+    if (googleAccessToken && tokenClient) {
+      tokenClient.requestAccessToken({ prompt: 'none' });
+    }
+  }, 55 * 60 * 1000);
+}
+
 function checkGoogleReady() {
   if (gapiReady && gsiReady) {
     loadFromStorage();
-    const savedToken = localStorage.getItem('gd_token');
-    if (savedToken) {
-      googleAccessToken = savedToken;
-      gapi.client.setToken({ access_token: googleAccessToken });
-      getOrCreateDriveFolder()
-        .then(async () => {
-          showDriveStatus('☁️ 드라이브 연결됨');
-          updateDriveBar();
-          // 저장된 토큰으로 자동 재연결 시 Drive에서 데이터 불러오기
-          await loadFromDrive();
-        })
-        .catch(() => {
-          googleAccessToken = null;
-          driveFolderId = null;
-          localStorage.removeItem('gd_token');
-          showDriveStatus('☁️ 연결 안됨');
-          updateDriveBar();
-        });
+    // 자동 토큰 갱신 시도 (팝업 없이 조용히)
+    silentSignIn();
     }
   }
 }
@@ -723,6 +745,24 @@ async function loadFromStorage() {
 }
 
 
+
+// base64 → Drive 업로드 → Drive URL 반환
+async function uploadToDrive(base64, filename) {
+  if (!googleAccessToken || !driveFolderId) return null;
+  try {
+    const mimeType = base64.split(';')[0].split(':')[1] || 'image/jpeg';
+    const encoded = base64.split(',')[1];
+    const fileId = await saveToDriveAndGetId(filename, encoded, mimeType);
+    if (fileId) {
+      return 'https://drive.google.com/uc?export=view&id=' + fileId;
+    }
+    return null;
+  } catch(e) {
+    console.warn('uploadToDrive error:', e);
+    return null;
+  }
+}
+
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -895,16 +935,20 @@ document.getElementById('projThumbInput').addEventListener('change', async e=>{
   renderGrid(currentProjKey);
   updateCount();
   e.target.value='';
-  // 드라이브 연결 시 백그라운드로 업로드 후 URL 교체
+  // 드라이브 연결 시 Drive에 업로드 후 URL로 교체 후 저장
   if(googleAccessToken && driveFolderId){
     try {
       const driveUrl = await uploadToDrive(base64, `thumb_${id}.jpg`);
       if(driveUrl){
         proj.thumb = driveUrl;
         renderGrid(currentProjKey);
+      } else {
+        // Drive 업로드 실패 시 thumb 비워서 저장 안 함
+        console.warn('Drive URL을 받지 못했습니다');
       }
-    } catch(err){ console.warn('Drive upload failed, keeping base64:', err); }
+    } catch(err){ console.warn('Drive upload failed:', err); }
   }
+  // Drive URL 교체 후 저장 (thumb에 Drive URL이 들어간 상태)
   saveToStorage();
 });
 
@@ -1027,7 +1071,12 @@ document.getElementById('projGalleryInput').addEventListener('change', async e=>
       const idx = proj.images.length - 1;
       try {
         const driveUrl = await uploadToDrive(base64, `gallery_${proj.id}_${idx}.jpg`);
-        if(driveUrl){ proj.images[idx] = driveUrl; renderModalGallery(proj); renderGrid(currentProjKey); }
+        if(driveUrl){
+          proj.images[idx] = driveUrl;
+          renderModalGallery(proj);
+          renderGrid(currentProjKey);
+          saveToStorage();
+        }
       } catch(err){ console.warn('Drive gallery upload failed:', err); }
     }
   }
@@ -1059,7 +1108,11 @@ document.getElementById('sbPanelInput').addEventListener('change', async e=>{
       const idx = sbPanels[currentSbStrip].length - 1;
       try {
         const driveUrl = await uploadToDrive(base64, `sb_${currentSbStrip}_${idx}.jpg`);
-        if(driveUrl){ sbPanels[currentSbStrip][idx].src = driveUrl; renderStrip(currentSbStrip); }
+        if(driveUrl){
+          sbPanels[currentSbStrip][idx].src = driveUrl;
+          renderStrip(currentSbStrip);
+          saveToStorage();
+        }
       } catch(err){ console.warn('Drive sb upload failed:', err); }
     }
   }
