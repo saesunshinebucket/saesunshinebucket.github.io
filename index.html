@@ -681,7 +681,7 @@ window.addEventListener('scroll',()=>{
 // ─────────────────────────────────────────
 // HERO
 // ─────────────────────────────────────────
-document.document.getElementById('heroFileInput').addEventListener('change', async e=>{
+document.getElementById('heroFileInput').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f||!editMode) return;
   const base64 = await fileToBase64(f);
   const img=document.getElementById('heroImg');
@@ -932,7 +932,7 @@ function getProj(){
   return currentProjKey&&currentProjId?projects[currentProjKey].find(p=>p.id===currentProjId):null;
 }
 
-document.document.getElementById('projGalleryInput').addEventListener('change', async e=>{
+document.getElementById('projGalleryInput').addEventListener('change', async e=>{
   const proj=getProj(); if(!proj) return;
   for(const f of e.target.files){
     const base64 = await fileToBase64(f);
@@ -965,7 +965,7 @@ function addSbPanel(stripId){
   currentSbStrip=stripId;
   document.getElementById('sbPanelInput').click();
 }
-document.document.getElementById('sbPanelInput').addEventListener('change', async e=>{
+document.getElementById('sbPanelInput').addEventListener('change', async e=>{
   if(!currentSbStrip) return;
   for(const f of e.target.files){
     const base64 = await fileToBase64(f);
