@@ -14,440 +14,198 @@
   --muted:  #8A8680;
   --accent: #C2410C;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  color: var(--paper);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--paper);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
 
-/* ── NAV ── */
-nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  display: flex; justify-content: center; align-items: center; gap: 52px;
-  height: 72px;
-  background: rgba(244,242,238,0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid transparent;
-  transition: border-color .4s;
-}
-nav.scrolled { border-bottom-color: var(--line); }
-nav a {
-  font-size: 13px; font-weight: 500; letter-spacing: .5px;
-  color: var(--muted); text-decoration: none;
-  transition: color .2s;
-  padding: 4px 0;
-}
-nav a:hover { color: var(--paper); }
-nav a.active { color: var(--paper); }
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:center;align-items:center;gap:52px;height:72px;background:rgba(244,242,238,.92);backdrop-filter:blur(16px);border-bottom:1px solid transparent;transition:border-color .4s;}
+nav.scrolled{border-bottom-color:var(--line);}
+nav a{font-size:13px;font-weight:500;letter-spacing:.5px;color:var(--muted);text-decoration:none;transition:color .2s;}
+nav a:hover,nav a.active{color:var(--paper);}
 
-/* ── MARQUEE BAND ── */
-.band {
-  width: 100%; height: 44px; overflow: hidden;
-  background: var(--bg3);
-  display: flex; align-items: center;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-.band-track {
-  display: flex; gap: 56px; white-space: nowrap;
-  animation: marquee 32s linear infinite;
-  will-change: transform;
-}
-.band-track span {
-  font-size: 11px; font-weight: 700; letter-spacing: 3px;
-  color: var(--muted); opacity: .5;
-}
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
+/* BAND */
+.band{width:100%;height:44px;overflow:hidden;background:var(--bg3);display:flex;align-items:center;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.band-track{display:flex;gap:56px;white-space:nowrap;animation:marquee 32s linear infinite;}
+.band-track span{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--muted);opacity:.5;}
+@keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 
-/* ── HERO ── */
-#home {
-  display: flex; flex-direction: column;
-  padding-top: 72px;
-  background: var(--bg);
-}
-.hero-top {
-  background: var(--bg);
-  text-align: center;
-  padding: 56px 24px 0;
-  position: relative; z-index: 2;
-}
-.hero-eyebrow { display: none; }
-.hero-title {
-  font-size: clamp(72px, 12vw, 168px);
-  font-weight: 900; line-height: .88;
-  letter-spacing: -6px; color: var(--paper);
-  margin-bottom: -0.08em; /* pulls title down to overlap image */
-}
-.hero-image-layer {
-  width: 100%;
-  height: 68vh;
-  min-height: 460px;
-  position: relative; overflow: hidden;
-  background: var(--bg2);
-  z-index: 1;
-}
-.hero-image-layer img {
-  width: 100%; height: 100%; object-fit: cover;
-  display: block;
-  filter: grayscale(5%);
-}
-.hero-image-layer .hero-ph {
-  width: 100%; height: 100%;
-  background: var(--bg2);
-  display: flex; align-items: center; justify-content: center;
-}
-.hero-image-layer .hero-ph span {
-  font-size: 11px; letter-spacing: 4px; color: var(--muted); opacity: .35;
-}
-/* name + role overlay at bottom of image */
-.hero-bottom-bar {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 6px;
-  padding: 32px 24px 24px;
-  background: linear-gradient(transparent, rgba(244,242,238,.72));
-  z-index: 2;
-}
-.hero-name {
-  font-size: 13px; font-weight: 700; letter-spacing: 3px;
-  color: var(--paper);
-}
-.hero-role {
-  font-size: 11px; font-weight: 500; letter-spacing: 3px;
-  color: var(--paper); opacity: .7;
-}
-.hero-divider { display: none; }
-.hero-sub { display: none; }
-.hero-scroll { display: none; }
-/* hero upload */
-.hero-upload-btn {
-  position: absolute; bottom: 14px; right: 16px; z-index: 3;
-  padding: 8px 14px; border-radius: 2px;
-  background: rgba(244,242,238,.88);
-  border: 1px solid var(--line);
-  color: var(--muted); font-size: 11px; letter-spacing: 1.5px;
-  cursor: pointer; backdrop-filter: blur(8px);
-  transition: color .2s, border-color .2s;
-}
-.hero-upload-btn:hover { color: var(--paper); border-color: var(--muted); }
-#heroInput { display: none; }
+/* HERO */
+#home{display:flex;flex-direction:column;padding-top:72px;background:var(--bg);}
+.hero-top{background:var(--bg);text-align:center;padding:56px 24px 0;position:relative;z-index:2;}
+.hero-title{font-size:clamp(72px,12vw,168px);font-weight:900;line-height:.88;letter-spacing:-6px;color:var(--paper);margin-bottom:-0.08em;}
+.hero-image-layer{width:100%;height:68vh;min-height:460px;position:relative;overflow:hidden;background:var(--bg2);z-index:1;}
+.hero-image-layer img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(5%);}
+.hero-ph{width:100%;height:100%;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;}
+.hero-ph span{font-size:11px;letter-spacing:4px;color:var(--muted);opacity:.35;}
+.hero-ph-btn{padding:10px 20px;border:1px solid var(--line);border-radius:2px;background:transparent;font-size:11px;letter-spacing:2px;color:var(--muted);cursor:pointer;transition:color .2s,border-color .2s;}
+.hero-ph-btn:hover{color:var(--paper);border-color:var(--muted);}
+.hero-bottom-bar{position:absolute;bottom:0;left:0;right:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:40px 24px 24px;background:linear-gradient(transparent,rgba(244,242,238,.75));z-index:2;pointer-events:none;}
+.hero-name{font-size:13px;font-weight:700;letter-spacing:3px;color:var(--paper);}
+.hero-role{font-size:11px;font-weight:500;letter-spacing:3px;color:var(--paper);opacity:.7;}
 
-/* ── SECTIONS ── */
-section { padding: 120px 64px; background: var(--bg); }
+/* SECTION */
+section{padding:100px 64px;background:var(--bg);}
+.sec-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:56px;padding-bottom:18px;border-bottom:1px solid var(--line);}
+.sec-label{font-size:12px;font-weight:700;letter-spacing:2.5px;color:var(--muted);}
+.sec-count{font-size:12px;color:var(--muted);opacity:.55;}
+.works-cat{margin-bottom:96px;}
+.works-cat-title{font-size:clamp(32px,4vw,52px);font-weight:300;letter-spacing:-1px;color:var(--paper);text-align:center;margin-bottom:40px;}
 
-.sec-header {
-  display: flex; justify-content: space-between; align-items: baseline;
-  margin-bottom: 64px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--line);
-}
-.sec-label {
-  font-size: 12px; font-weight: 700; letter-spacing: 2.5px; color: var(--muted);
-}
-.sec-count { font-size: 12px; color: var(--muted); opacity: .55; }
+/* PROJECT GRID */
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;background:var(--line);border:1px solid var(--line);}
+.proj-card{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--bg2);cursor:pointer;}
+.proj-card-thumb{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(8%);transition:filter .5s,transform .5s;}
+.proj-card:hover .proj-card-thumb{filter:grayscale(0%);transform:scale(1.04);}
+.proj-card-overlay{position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(26,25,23,.82));display:flex;flex-direction:column;justify-content:flex-end;padding:20px 18px;opacity:0;transition:opacity .3s;}
+.proj-card:hover .proj-card-overlay{opacity:1;}
+.proj-card-tag{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent);margin-bottom:4px;}
+.proj-card-name{font-size:16px;font-weight:600;color:#F2F0EC;margin-bottom:3px;}
+.proj-card-sub{font-size:12px;color:rgba(242,240,236,.65);}
+.proj-card-count{position:absolute;top:12px;right:12px;background:rgba(26,25,23,.65);backdrop-filter:blur(4px);color:#F2F0EC;font-size:11px;font-weight:600;letter-spacing:.5px;padding:4px 10px;border-radius:2px;opacity:0;transition:opacity .3s;}
+.proj-card:hover .proj-card-count{opacity:1;}
+/* placeholder card */
+.proj-card-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--bg2);cursor:pointer;transition:background .2s;}
+.proj-card-ph:hover{background:var(--bg3);}
+.proj-card-ph span{font-size:10px;letter-spacing:3px;color:var(--muted);opacity:.45;}
+.proj-add-btn{display:none;aspect-ratio:4/3;border:1px dashed var(--line);background:transparent;align-items:center;justify-content:center;cursor:pointer;font-size:11px;letter-spacing:2px;color:var(--muted);opacity:.5;transition:border-color .2s,opacity .2s;}
+.proj-add-btn:hover{border-color:var(--muted);opacity:.8;}
+.edit-on .proj-add-btn{display:flex;}
 
-/* ── STORYBOARD ── */
-.sb-seq { margin-bottom: 96px; }
-.sb-seq-title {
-  font-size: clamp(34px, 4.5vw, 54px);
-  font-weight: 300; letter-spacing: -1px; color: var(--paper);
-  text-align: center; margin-bottom: 48px;
-  cursor: text; outline: none;
-}
-.sb-seq-title:focus { border-bottom: 1px solid var(--line); }
-.sb-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 3px;
-  background: var(--line);
-  border: 1px solid var(--line);
-}
-.sb-panel {
-  position: relative; aspect-ratio: 16/9;
-  background: var(--bg2); overflow: hidden; cursor: zoom-in;
-}
-.sb-panel img {
-  width: 100%; height: 100%; object-fit: cover; display: block;
-  filter: grayscale(10%);
-  transition: filter .4s, transform .5s;
-}
-.sb-panel:hover img { filter: grayscale(0%); transform: scale(1.03); }
-.sb-panel-num {
-  position: absolute; top: 10px; left: 12px;
-  font-size: 11px; font-weight: 700; letter-spacing: 1px;
-  color: var(--muted); opacity: .5; pointer-events: none;
-}
-.sb-panel-del {
-  position: absolute; top: 8px; right: 8px;
-  width: 26px; height: 26px;
-  background: rgba(244,242,238,.85); border: 1px solid var(--line);
-  color: var(--muted); border-radius: 2px;
-  font-size: 16px; cursor: pointer;
-  display: none; align-items: center; justify-content: center;
-  transition: color .2s;
-}
-.sb-panel:hover .sb-panel-del { display: flex; }
-.sb-panel-del:hover { color: #ef4444; }
-.sb-panel-caption {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 10px 14px 12px;
-  background: linear-gradient(transparent, rgba(244,242,238,.92));
-  opacity: 0; transition: opacity .3s;
-  font-size: 12px; color: rgba(26,25,23,.75);
-  outline: none; cursor: text;
-}
-.sb-panel:hover .sb-panel-caption { opacity: 1; }
-.sb-add {
-  aspect-ratio: 16/9;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--bg2); border: 1px dashed var(--line);
-  font-size: 11px; letter-spacing: 2px; color: var(--muted); opacity: .45;
-  cursor: pointer; transition: border-color .2s, opacity .2s;
-  display: none;
-}
-.sb-add:hover { border-color: var(--muted); opacity: .75; }
-.sb-note {
-  margin-top: 18px; text-align: center;
-  font-size: 14px; color: var(--muted); font-style: italic;
-  letter-spacing: .3px; outline: none; cursor: text;
-  min-height: 22px;
-}
-.sb-note:focus { color: var(--paper); }
+/* STORYBOARD */
+.sb-seq{margin-bottom:80px;}
+.sb-seq-title{font-size:clamp(18px,2.2vw,28px);font-weight:300;color:var(--paper);text-align:center;margin-bottom:28px;letter-spacing:-.5px;}
+.sb-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:3px;background:var(--line);border:1px solid var(--line);}
+.sb-panel{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--bg2);cursor:zoom-in;}
+.sb-panel img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(10%);transition:filter .4s,transform .5s;}
+.sb-panel:hover img{filter:grayscale(0%);transform:scale(1.03);}
+.sb-num{position:absolute;top:10px;left:12px;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);opacity:.55;pointer-events:none;}
+.sb-caption{position:absolute;bottom:0;left:0;right:0;padding:10px 14px 12px;background:linear-gradient(transparent,rgba(244,242,238,.88));opacity:0;transition:opacity .3s;font-size:12px;color:rgba(26,25,23,.75);}
+.sb-panel:hover .sb-caption{opacity:1;}
+.sb-note{margin-top:14px;text-align:center;font-size:13px;color:var(--muted);font-style:italic;}
+.sb-add-btn{display:none;aspect-ratio:16/9;border:1px dashed var(--line);background:transparent;align-items:center;justify-content:center;cursor:pointer;font-size:11px;letter-spacing:2px;color:var(--muted);opacity:.5;transition:border-color .2s,opacity .2s;}
+.sb-add-btn:hover{border-color:var(--muted);opacity:.8;}
+.edit-on .sb-add-btn{display:flex;}
 
-/* ── WORKS GRID ── */
-.works-cat { margin-bottom: 96px; }
-.works-cat-title {
-  font-size: clamp(34px, 4.5vw, 54px);
-  font-weight: 300; letter-spacing: -1px; color: var(--paper);
-  text-align: center; margin-bottom: 48px;
-}
-.works-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 3px;
-  background: var(--line);
-  border: 1px solid var(--line);
-}
-.work-cell {
-  position: relative; aspect-ratio: 4/3;
-  background: var(--bg2); overflow: hidden; cursor: zoom-in;
-}
-.work-cell img {
-  width: 100%; height: 100%; object-fit: cover; display: block;
-  filter: grayscale(10%);
-  transition: filter .4s, transform .5s;
-}
-.work-cell:hover img { filter: grayscale(0%); transform: scale(1.04); }
-.work-cell-info {
-  position: absolute; inset: 0;
-  background: linear-gradient(transparent 45%, rgba(244,242,238,.94));
-  display: flex; flex-direction: column; justify-content: flex-end;
-  padding: 18px 16px;
-  opacity: 0; transition: opacity .3s;
-}
-.work-cell:hover .work-cell-info { opacity: 1; }
-.work-cell-tag {
-  font-size: 10px; font-weight: 700; letter-spacing: 2px;
-  color: var(--accent); margin-bottom: 4px;
-}
-.work-cell-title {
-  font-size: 15px; font-weight: 500; color: var(--paper);
-  outline: none;
-}
-.work-cell-sub {
-  font-size: 12px; color: var(--muted); margin-top: 2px;
-  outline: none;
-}
-.work-cell-del {
-  position: absolute; top: 8px; right: 8px;
-  width: 26px; height: 26px;
-  background: rgba(244,242,238,.85); border: 1px solid var(--line);
-  color: var(--muted); border-radius: 2px; font-size: 16px;
-  cursor: pointer; display: none; align-items: center; justify-content: center;
-  transition: color .2s;
-}
-.work-cell:hover .work-cell-del { display: flex; }
-.work-cell-del:hover { color: #ef4444; }
-.works-add {
-  aspect-ratio: 4/3;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--bg2); border: 1px dashed var(--line);
-  font-size: 11px; letter-spacing: 2px; color: var(--muted); opacity: .45;
-  cursor: pointer; transition: border-color .2s, opacity .2s;
-  display: none;
-}
-.works-add:hover { border-color: var(--muted); opacity: .75; }
+/* PROJECT MODAL */
+.modal-bg{display:none;position:fixed;inset:0;z-index:800;background:rgba(244,242,238,.96);backdrop-filter:blur(12px);overflow-y:auto;}
+.modal-bg.open{display:block;}
+.modal{max-width:1100px;margin:0 auto;padding:80px 48px 100px;}
+.modal-close{position:fixed;top:24px;right:28px;font-size:28px;color:var(--muted);background:none;border:none;cursor:pointer;z-index:810;line-height:1;transition:color .2s;}
+.modal-close:hover{color:var(--paper);}
+.modal-tag{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--accent);margin-bottom:12px;}
+.modal-title{font-size:clamp(36px,5vw,72px);font-weight:900;letter-spacing:-2px;line-height:.9;margin-bottom:20px;}
+.modal-desc{font-size:15px;color:var(--muted);line-height:1.75;max-width:640px;margin-bottom:56px;}
+.modal-hero{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;margin-bottom:4px;border:1px solid var(--line);}
+.modal-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:3px;background:var(--line);border:1px solid var(--line);margin-bottom:8px;}
+.modal-img-wrap{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--bg2);cursor:zoom-in;}
+.modal-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.modal-img-wrap:hover img{transform:scale(1.04);}
+.modal-img-del{position:absolute;top:8px;right:8px;width:26px;height:26px;background:rgba(244,242,238,.85);border:1px solid var(--line);color:var(--muted);border-radius:2px;font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center;}
+.edit-on .modal-img-wrap:hover .modal-img-del{display:flex;}
+.modal-img-del:hover{color:#ef4444;}
+.modal-add-img{aspect-ratio:4/3;border:1px dashed var(--line);background:transparent;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:11px;letter-spacing:2px;color:var(--muted);opacity:.5;transition:border-color .2s;}
+.modal-add-img:hover{border-color:var(--muted);opacity:.8;}
+.edit-on .modal-add-img{display:flex;}
+.modal-edit-bar{display:none;flex-direction:column;gap:8px;margin-top:32px;padding-top:24px;border-top:1px solid var(--line);}
+.edit-on .modal-edit-bar{display:flex;}
+.modal-edit-bar label{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:4px;display:block;}
+.modal-edit-bar input,.modal-edit-bar textarea{width:100%;padding:12px 16px;background:var(--bg2);border:1px solid var(--line);border-radius:2px;font-family:inherit;font-size:14px;color:var(--paper);outline:none;}
+.modal-edit-bar textarea{height:80px;resize:none;}
 
-/* ── ABOUT ── */
-#about { padding: 120px 64px; }
-.about-stmt-ko {
-  font-size: clamp(26px, 3.5vw, 42px);
-  font-weight: 300; letter-spacing: -.5px;
-  line-height: 1.25; text-align: center; margin-bottom: 12px;
-}
-.about-stmt-en {
-  font-size: 18px; font-weight: 300; color: var(--muted);
-  text-align: center; margin-bottom: 72px; letter-spacing: .3px;
-}
-.about-bio {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
-  max-width: 860px; margin: 0 auto 80px;
-}
-.about-bio-ko { font-size: 15px; line-height: 1.78; color: rgba(26,25,23,.82); }
-.about-bio-en { font-size: 15px; line-height: 1.78; color: var(--muted); }
-.film-header {
-  display: flex; justify-content: space-between; align-items: baseline;
-  max-width: 960px; margin: 0 auto 18px;
-}
-.film-header span:first-child {
-  font-size: 12px; font-weight: 700; letter-spacing: 2.5px; color: var(--paper);
-}
-.film-header span:last-child { font-size: 12px; color: var(--muted); }
-.filmography {
-  max-width: 960px; margin: 0 auto 32px;
-  border: 1px solid var(--line); border-radius: 3px; overflow: hidden;
-}
-.film-row {
-  display: grid;
-  grid-template-columns: 64px 1fr auto;
-  align-items: center; gap: 28px;
-  padding: 18px 28px;
-  border-bottom: 1px solid var(--line);
-  transition: background .2s;
-}
-.film-row:last-child { border-bottom: none; }
-.film-row:nth-child(even) { background: var(--bg2); }
-.film-row:hover { background: var(--bg3); }
-.film-year { font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: .5px; }
-.film-ko { font-size: 17px; font-weight: 500; color: var(--paper); }
-.film-en { font-size: 12px; color: var(--muted); margin-top: 2px; letter-spacing: .3px; }
-.film-role { font-size: 13px; color: var(--muted); text-align: right; }
-.nda-note {
-  text-align: center; font-size: 12px; color: var(--muted); opacity: .65;
-  max-width: 680px; margin: 0 auto 72px; line-height: 1.75;
-}
-.skills {
-  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
-  max-width: 720px; margin: 0 auto;
-}
-.skill-chip {
-  padding: 10px 22px; border: 1px solid #1A1917; border-radius: 2px;
-  font-size: 13px; font-weight: 500;
-  color: #F2F0EC; background: #1A1917;
-}
+/* ABOUT */
+.about-stmt-ko{font-size:clamp(22px,3vw,38px);font-weight:300;letter-spacing:-.5px;line-height:1.3;text-align:center;margin-bottom:10px;}
+.about-stmt-en{font-size:17px;font-weight:300;color:var(--muted);text-align:center;margin-bottom:64px;}
+.about-bio{display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:860px;margin:0 auto 72px;}
+.about-bio-ko{font-size:15px;line-height:1.78;color:rgba(26,25,23,.82);}
+.about-bio-en{font-size:15px;line-height:1.78;color:var(--muted);}
+.film-header{display:flex;justify-content:space-between;align-items:baseline;max-width:960px;margin:0 auto 16px;}
+.film-header span:first-child{font-size:12px;font-weight:700;letter-spacing:2.5px;color:var(--paper);}
+.film-header span:last-child{font-size:12px;color:var(--muted);}
+.filmography{max-width:960px;margin:0 auto 28px;border:1px solid var(--line);border-radius:3px;overflow:hidden;}
+.film-row{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:28px;padding:18px 28px;border-bottom:1px solid var(--line);transition:background .2s;}
+.film-row:last-child{border-bottom:none;}
+.film-row:nth-child(even){background:var(--bg2);}
+.film-row:hover{background:var(--bg3);}
+.film-year{font-size:14px;font-weight:500;color:var(--muted);}
+.film-ko{font-size:17px;font-weight:500;color:var(--paper);}
+.film-en{font-size:12px;color:var(--muted);margin-top:2px;}
+.film-role{font-size:13px;color:var(--muted);text-align:right;}
+.nda-note{text-align:center;font-size:12px;color:var(--muted);opacity:.65;max-width:680px;margin:0 auto 64px;line-height:1.75;}
+.skills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:720px;margin:0 auto;}
+.skill-chip{padding:10px 22px;border:1px solid #1A1917;border-radius:2px;font-size:13px;font-weight:500;color:#F2F0EC;background:#1A1917;}
 
-/* ── CONNECT ── */
-#connect { text-align: center; padding: 120px 64px; }
-.connect-title {
-  font-size: clamp(56px, 8.5vw, 104px);
-  font-weight: 900; letter-spacing: -4px; line-height: .88;
-  margin-bottom: 72px; color: var(--paper);
-}
-.connect-form {
-  max-width: 520px; margin: 0 auto 28px;
-  border: 1px solid var(--line); border-radius: 3px; overflow: hidden;
-}
-.connect-form input,
-.connect-form textarea {
-  display: block; width: 100%;
-  background: var(--bg2); border: none;
-  border-bottom: 1px solid var(--line);
-  color: var(--paper); font-family: inherit; font-size: 15px;
-  padding: 20px 22px; outline: none; resize: none;
-  transition: background .2s;
-}
-.connect-form input::placeholder,
-.connect-form textarea::placeholder { color: var(--muted); }
-.connect-form input:focus,
-.connect-form textarea:focus { background: var(--bg3); }
-.connect-form textarea { height: 148px; border-bottom: none; }
-.connect-btn {
-  margin-top: 20px;
-  padding: 16px 52px;
-  background: var(--paper); color: var(--bg);
-  border: none; border-radius: 2px;
-  font-size: 14px; font-weight: 700; letter-spacing: 1.5px;
-  cursor: pointer; transition: opacity .2s;
-}
-.connect-btn:hover { opacity: .82; }
-.connect-email {
-  margin-top: 36px; font-size: 14px; color: var(--muted); letter-spacing: .3px;
-}
+/* CONNECT */
+#connect{text-align:center;padding:100px 64px;}
+.connect-title{font-size:clamp(52px,8vw,104px);font-weight:900;letter-spacing:-4px;line-height:.88;margin-bottom:64px;}
+.connect-form{max-width:520px;margin:0 auto 24px;border:1px solid var(--line);border-radius:3px;overflow:hidden;}
+.connect-form input,.connect-form textarea{display:block;width:100%;background:var(--bg2);border:none;border-bottom:1px solid var(--line);color:var(--paper);font-family:inherit;font-size:15px;padding:20px 22px;outline:none;resize:none;transition:background .2s;}
+.connect-form input::placeholder,.connect-form textarea::placeholder{color:var(--muted);}
+.connect-form input:focus,.connect-form textarea:focus{background:var(--bg3);}
+.connect-form textarea{height:140px;border-bottom:none;}
+.connect-btn{margin-top:20px;padding:16px 52px;background:var(--paper);color:var(--bg);border:none;border-radius:2px;font-size:14px;font-weight:700;letter-spacing:1.5px;cursor:pointer;transition:opacity .2s;}
+.connect-btn:hover{opacity:.82;}
+.connect-email{margin-top:32px;font-size:14px;color:var(--muted);}
 
-/* ── FOOTER ── */
-footer {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 36px 64px;
-  border-top: 1px solid var(--line);
-  background: #ECEAE5;
-}
-.footer-logo { font-size: 13px; font-weight: 900; letter-spacing: 2px; color: var(--paper); }
-.footer-links { display: flex; gap: 28px; }
-.footer-links a {
-  font-size: 13px; color: var(--muted); text-decoration: none;
-  letter-spacing: .3px; transition: color .2s;
-}
-.footer-links a:hover { color: var(--paper); }
-.footer-copy { font-size: 12px; color: var(--muted); opacity: .5; }
+/* FOOTER */
+footer{display:flex;flex-direction:column;align-items:center;gap:14px;padding:48px 64px 36px;border-top:1px solid var(--line);background:#ECEAE5;}
+.footer-logo{font-size:13px;font-weight:900;letter-spacing:2px;color:var(--paper);}
+.footer-links{display:flex;gap:28px;}
+.footer-links a{font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s;}
+.footer-links a:hover{color:var(--paper);}
+.footer-copy{font-size:12px;color:var(--muted);opacity:.5;}
 
-/* ── LIGHTBOX ── */
-.lb {
-  display: none; position: fixed; inset: 0; z-index: 999;
-  background: rgba(244,242,238,.96); backdrop-filter: blur(6px);
-  align-items: center; justify-content: center;
-}
-.lb.open { display: flex; }
-.lb img { max-width: 92vw; max-height: 90vh; object-fit: contain; }
-.lb-close {
-  position: absolute; top: 24px; right: 28px;
-  font-size: 30px; color: var(--muted); cursor: pointer;
-  background: none; border: none; line-height: 1; padding: 0;
-  transition: color .2s;
-}
-.lb-close:hover { color: var(--paper); }
+/* LIGHTBOX */
+.lb{display:none;position:fixed;inset:0;z-index:1000;background:rgba(26,25,23,.95);align-items:center;justify-content:center;}
+.lb.open{display:flex;}
+.lb img{max-width:92vw;max-height:90vh;object-fit:contain;}
+.lb-close{position:absolute;top:24px;right:28px;font-size:30px;color:rgba(242,240,236,.6);background:none;border:none;cursor:pointer;transition:color .2s;}
+.lb-close:hover{color:#F2F0EC;}
 
-/* ── EDIT TOGGLE ── */
-.edit-btn {
-  position: fixed; bottom: 24px; right: 24px; z-index: 200;
-  padding: 10px 18px; border-radius: 2px;
-  background: var(--bg2); border: 1px solid var(--line);
-  color: var(--muted); font-size: 11px; letter-spacing: 1.5px;
-  cursor: pointer; backdrop-filter: blur(8px);
-  transition: color .2s, border-color .2s;
-}
-.edit-btn:hover { color: var(--paper); border-color: var(--muted); }
-.edit-btn.on { color: var(--accent); border-color: var(--accent); }
+/* MANAGE BTN */
+.manage-btn{position:fixed;bottom:24px;right:24px;z-index:600;padding:10px 18px;border-radius:2px;background:var(--bg2);border:1px solid var(--line);color:var(--muted);font-size:11px;letter-spacing:1.5px;cursor:pointer;transition:color .2s,border-color .2s;backdrop-filter:blur(8px);}
+.manage-btn:hover{color:var(--paper);border-color:var(--muted);}
+.manage-btn.on{color:var(--accent);border-color:var(--accent);}
 
-/* ── RESPONSIVE ── */
-@media (max-width: 960px) {
-  section, #about, #connect { padding: 80px 32px; }
-  .works-grid { grid-template-columns: repeat(2, 1fr); }
-  .about-bio { grid-template-columns: 1fr; gap: 24px; }
-  .film-row { grid-template-columns: 52px 1fr; }
-  .film-role { display: none; }
-  footer { flex-direction: column; gap: 20px; text-align: center; }
-}
-@media (max-width: 600px) {
-  nav { gap: 24px; }
-  .hero-title { letter-spacing: -2px; }
-  .works-grid { grid-template-columns: 1fr; }
-  .sb-grid { grid-template-columns: 1fr; }
-  section, #about, #connect { padding: 64px 20px; }
-  footer { padding: 32px 20px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .band-track { animation: none; }
-  * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
-}
+/* PASSWORD MODAL */
+.pw-modal-bg{display:none;position:fixed;inset:0;z-index:900;background:rgba(244,242,238,.96);backdrop-filter:blur(12px);align-items:center;justify-content:center;}
+.pw-modal-bg.open{display:flex;}
+.pw-modal{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:40px 36px;width:320px;text-align:center;}
+.pw-modal-title{font-size:12px;font-weight:700;letter-spacing:2.5px;color:var(--muted);margin-bottom:24px;}
+.pw-input{width:100%;padding:14px 16px;background:var(--bg2);border:1px solid var(--line);border-radius:2px;font-family:inherit;font-size:15px;color:var(--paper);outline:none;text-align:center;letter-spacing:4px;transition:border-color .2s;}
+.pw-input:focus{border-color:var(--muted);}
+.pw-input.error{border-color:#ef4444;animation:shake .3s;}
+.pw-submit{margin-top:12px;width:100%;padding:14px;background:var(--paper);color:var(--bg);border:none;border-radius:2px;font-size:13px;font-weight:700;letter-spacing:1.5px;cursor:pointer;transition:opacity .2s;}
+.pw-submit:hover{opacity:.82;}
+.pw-error{font-size:12px;color:#ef4444;margin-top:10px;min-height:18px;}
+.pw-cancel{font-size:12px;color:var(--muted);margin-top:14px;cursor:pointer;background:none;border:none;letter-spacing:.5px;transition:color .2s;}
+.pw-cancel:hover{color:var(--paper);}
+
+
+/* DRAG & DROP ZONES */
+.drop-zone{position:relative;transition:outline .2s;}
+.drop-zone.drag-over::after{content:'이미지를 놓으세요';position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:2px;color:var(--paper);background:rgba(244,242,238,.88);border:2px dashed var(--paper);border-radius:2px;pointer-events:none;}
+.drop-zone.drag-over{outline:2px dashed var(--paper);}
+.drop-hint{display:none;position:absolute;inset:0;z-index:5;align-items:center;justify-content:center;flex-direction:column;gap:8px;pointer-events:none;}
+.edit-on .drop-hint{display:flex;}
+.drop-hint-text{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);opacity:.5;}
+
+/* UNRELEASED LOCK */
+.unrel-lock{position:relative;}
+.unrel-overlay{display:flex;position:absolute;inset:0;z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(244,242,238,.92);backdrop-filter:blur(8px);}
+.unrel-lock-icon{font-size:28px;opacity:.4;}
+.unrel-lock-label{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--muted);}
+.unrel-lock-btn{padding:10px 24px;border:1px solid var(--line);border-radius:2px;background:transparent;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);cursor:pointer;transition:color .2s,border-color .2s;}
+.unrel-lock-btn:hover{color:var(--paper);border-color:var(--muted);}
+
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+
+/* file input */
+input[type=file]{display:none;}
+
+/* RESPONSIVE */
+@media(max-width:960px){section,#connect{padding:72px 28px;}.proj-grid{grid-template-columns:1fr 1fr;}.about-bio{grid-template-columns:1fr;}.film-row{grid-template-columns:52px 1fr;}.film-role{display:none;}footer{flex-direction:column;gap:16px;text-align:center;}.modal{padding:60px 24px 80px;}}
+@media(max-width:600px){nav{gap:22px;}.hero-title{letter-spacing:-2px;}.proj-grid,.sb-strip{grid-template-columns:1fr;}section,#connect{padding:56px 18px;}}
 </style>
 </head>
 <body>
@@ -466,65 +224,74 @@ footer {
     <h1 class="hero-title">VISUAL<br>CONCEPT<br>ARTIST</h1>
   </div>
   <div class="hero-image-layer" id="heroBg">
-    <div class="hero-ph" id="heroPh"><span>KEY VISUAL</span></div>
-    <img id="heroImg" src="" alt="" style="display:none;">
+    <div class="hero-ph" id="heroPh">
+      <span>KEY VISUAL</span>
+      <button class="hero-ph-btn" onclick="document.getElementById('heroFileInput').click()">+ 이미지 업로드</button>
+    </div>
+    <img id="heroImg" src="images/hero.jpg" alt=""
+      onload="this.style.display='block';document.getElementById('heroPh').style.display='none';"
+      onerror="this.style.display='none';" style="display:none;">
     <div class="hero-bottom-bar">
       <span class="hero-name">SAE KIM</span>
       <span class="hero-role">CONCEPT ART · PREVISUALIZATION · STORYBOARD</span>
     </div>
-    <button class="hero-upload-btn" onclick="document.getElementById('heroInput').click()">+ KEY VISUAL</button>
-    <input type="file" id="heroInput" accept="image/*">
   </div>
 </section>
+<input type="file" id="heroFileInput" accept="image/*">
 
 <!-- BAND -->
-<div class="band"><div class="band-track" id="band1">
+<div class="band"><div class="band-track">
   <span>STORYBOARD</span><span>·</span><span>PREVISUALIZATION</span><span>·</span>
   <span>CONCEPT ART</span><span>·</span><span>VISUAL DEVELOPMENT</span><span>·</span>
-  <span>STORYBOARD</span><span>·</span><span>PREVISUALIZATION</span><span>·</span>
-  <span>CONCEPT ART</span><span>·</span><span>VISUAL DEVELOPMENT</span><span>·</span>
+  <span>KEY FRAME</span><span>·</span><span>STORYBOARD</span><span>·</span>
+  <span>PREVISUALIZATION</span><span>·</span><span>CONCEPT ART</span><span>·</span>
+  <span>VISUAL DEVELOPMENT</span><span>·</span><span>KEY FRAME</span><span>·</span>
 </div></div>
 
 <!-- WORKS -->
 <section id="works">
   <div class="sec-header">
     <span class="sec-label">WORKS</span>
-    <span class="sec-count" id="worksCount">0 works</span>
+    <span class="sec-count" id="worksCount">0 projects</span>
   </div>
 
-  <!-- CONCEPT ART -->
   <div class="works-cat">
     <h2 class="works-cat-title">Concept Art</h2>
-    <div class="works-grid" id="gridConcept"></div>
+    <div class="proj-grid drop-zone" id="gridConcept" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'concept')">
+      <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
+      <button class="proj-add-btn" onclick="addProject('concept')">+ ADD PROJECT</button>
+    </div>
   </div>
 
-  <!-- STORYBOARD -->
   <div class="works-cat">
     <h2 class="works-cat-title">Storyboard · Previs</h2>
-
-    <div class="sb-seq">
-      <h2 class="sb-seq-title" id="seqTitleA" contenteditable="false">Sequence A</h2>
-      <div class="sb-grid" id="gridA"></div>
-      <p class="sb-note" id="noteA" contenteditable="false">장면 설명 · Scene description</p>
-    </div>
-
-    <div class="sb-seq">
-      <h2 class="sb-seq-title" id="seqTitleB" contenteditable="false">Sequence B</h2>
-      <div class="sb-grid" id="gridB"></div>
-      <p class="sb-note" id="noteB" contenteditable="false">장면 설명 · Scene description</p>
+    <div class="sb-strip drop-zone" id="stripA" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDropSb(event,'stripA')">
+      <div class="drop-hint"><span class="drop-hint-text">↓ 패널 이미지를 드래그하여 추가</span></div>
+      <button class="sb-add-btn" onclick="addSbPanel('stripA')">+ ADD PANEL</button>
     </div>
   </div>
 
-  <!-- PROFESSIONAL WORK -->
-  <div class="works-cat">
-    <h2 class="works-cat-title">Professional Work</h2>
-    <div class="works-grid" id="gridPro"></div>
+  <div class="works-cat unrel-lock" id="unrelSection">
+    <h2 class="works-cat-title">Unreleased Works</h2>
+    <div style="position:relative;min-height:220px;">
+      <div class="unrel-overlay" id="unrelOverlay">
+        <span class="unrel-lock-icon">🔒</span>
+        <span class="unrel-lock-label">RESTRICTED ACCESS</span>
+        <button class="unrel-lock-btn" onclick="openUnrelModal()">VIEW WORKS</button>
+      </div>
+      <div class="proj-grid drop-zone" id="gridPro" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'pro')">
+        <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
+        <button class="proj-add-btn" onclick="addProject('pro')">+ ADD PROJECT</button>
+      </div>
+    </div>
   </div>
 
-  <!-- PERSONAL PROJECTS -->
   <div class="works-cat">
     <h2 class="works-cat-title">Personal Projects</h2>
-    <div class="works-grid" id="gridPersonal"></div>
+    <div class="proj-grid drop-zone" id="gridPersonal" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'personal')">
+      <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
+      <button class="proj-add-btn" onclick="addProject('personal')">+ ADD PROJECT</button>
+    </div>
   </div>
 </section>
 
@@ -538,19 +305,14 @@ footer {
 
 <!-- ABOUT -->
 <section id="about">
-  <div class="sec-header">
-    <span class="sec-label">ABOUT</span>
-  </div>
+  <div class="sec-header"><span class="sec-label">ABOUT</span></div>
   <p class="about-stmt-ko">카메라가 닿기 전,<br>아이디어를 시각적 언어로 구현하고,<br>브랜드와 감정을 연결해 비주얼을 구축합니다.</p>
   <p class="about-stmt-en">I design worlds before the camera finds them.</p>
   <div class="about-bio">
     <p class="about-bio-ko">영화 컨셉 기획 및 비주얼 컨셉 아트. 초기 비주얼 개발부터 키프레임, 프리비주얼라이제이션까지 영화의 톤과 서사를 컨셉 아트로 담아냅니다. 전통적인 컨셉 작업과 Midjourney·ComfyUI 기반 AI 워크플로우를 이용해 보다 더 좋은 결과물을 만듭니다.</p>
     <p class="about-bio-en">Film concept and visual concept artist. From early visual development to key frames and previsualization, I capture a film's tone and story through concept art — combining traditional concept craft with AI-assisted workflows (Midjourney, ComfyUI) to deliver stronger results.</p>
   </div>
-  <div class="film-header">
-    <span>FILMOGRAPHY · 주요 작품</span>
-    <span>2013 — 2025</span>
-  </div>
+  <div class="film-header"><span>FILMOGRAPHY · 주요 작품</span><span>2013 — 2025</span></div>
   <div class="filmography">
     <div class="film-row"><span class="film-year">2025</span><div><div class="film-ko">하이파이브</div><div class="film-en">High Five</div></div><span class="film-role">Visual Concept Development Artist</span></div>
     <div class="film-row"><span class="film-year">2023</span><div><div class="film-ko">콘크리트 유토피아</div><div class="film-en">Concrete Utopia</div></div><span class="film-role">Visual Concept Development Artist</span></div>
@@ -563,14 +325,10 @@ footer {
   </div>
   <p class="nda-note">비공개 작품 및 별도의 비주얼 레퍼런스는 NDA로 보호되며 요청 시 비공개로 공유됩니다.<br>Visual references for credited productions are under NDA and shared privately on request.</p>
   <div class="skills">
-    <span class="skill-chip">Storyboard</span>
-    <span class="skill-chip">Previsualization</span>
-    <span class="skill-chip">Concept Art</span>
-    <span class="skill-chip">Visual Development</span>
-    <span class="skill-chip">Key Frame</span>
-    <span class="skill-chip">Midjourney</span>
-    <span class="skill-chip">ComfyUI</span>
-    <span class="skill-chip">Photoshop</span>
+    <span class="skill-chip">Storyboard</span><span class="skill-chip">Previsualization</span>
+    <span class="skill-chip">Concept Art</span><span class="skill-chip">Visual Development</span>
+    <span class="skill-chip">Key Frame</span><span class="skill-chip">Midjourney</span>
+    <span class="skill-chip">ComfyUI</span><span class="skill-chip">Photoshop</span>
   </div>
 </section>
 
@@ -590,10 +348,11 @@ footer {
     <input type="email" placeholder="Email">
     <textarea placeholder="Tell me about your project… / 프로젝트를 알려주세요"></textarea>
   </div>
-  <button class="connect-btn" onclick="handleSend()">SEND</button>
+  <button class="connect-btn" onclick="alert('메시지 전송!\nMessage sent — thank you!')">SEND</button>
   <p class="connect-email">saesunshinebucket@gmail.com &nbsp;·&nbsp; Seoul, KR</p>
 </section>
 
+<!-- FOOTER -->
 <!-- FOOTER -->
 <footer>
   <span class="footer-logo">SAE KIM</span>
@@ -605,197 +364,421 @@ footer {
   <span class="footer-copy">© 2026 Sae Kim</span>
 </footer>
 
+<!-- PROJECT MODAL -->
+<div class="modal-bg" id="modalBg">
+  <button class="modal-close" onclick="closeModal()">×</button>
+  <div class="modal" id="modalContent"></div>
+</div>
+
 <!-- LIGHTBOX -->
 <div class="lb" id="lb">
   <button class="lb-close" onclick="closeLb()">×</button>
   <img id="lbImg" src="" alt="">
 </div>
 
-<!-- EDIT BUTTON -->
-<button class="edit-btn" id="editBtn" onclick="toggleEdit()">EDIT MODE</button>
+<!-- MANAGE BUTTON -->
+<button class="manage-btn" id="manageBtn" onclick="toggleEdit()">⚙ MANAGE</button>
 
-<!-- HIDDEN FILE INPUTS -->
-<input type="file" id="sbInput" accept="image/*" multiple style="display:none;">
-<input type="file" id="worksInput" accept="image/*" multiple style="display:none;">
+<!-- FILE INPUTS -->
+<input type="file" id="projThumbInput" accept="image/*">
+<input type="file" id="projGalleryInput" accept="image/*" multiple>
+<input type="file" id="sbPanelInput" accept="image/*" multiple>
 
 <script>
 // ── STATE ──
-let editing = false;
-let sbTarget = null;
-let worksTarget = null;
+let editMode = false;
+let projects = { concept:[], pro:[], personal:[] };
+let sbPanels = { stripA:[] };
+let currentProjKey = null;
+let currentProjId = null;
+let currentSbStrip = null;
+let projCounter = 0;
 
-// ── NAV ACTIVE ──
+// ── NAV ──
 const navEl = document.getElementById('nav');
-const secs = document.querySelectorAll('section[id]');
-window.addEventListener('scroll', () => {
+window.addEventListener('scroll',()=>{
   navEl.classList.toggle('scrolled', scrollY > 50);
-  let cur = '';
-  secs.forEach(s => { if (scrollY >= s.offsetTop - 130) cur = s.id; });
-  document.querySelectorAll('nav a').forEach(a => {
-    a.classList.toggle('active', a.getAttribute('href') === '#' + cur);
-  });
-}, {passive:true});
+  let cur='';
+  document.querySelectorAll('section[id]').forEach(s=>{if(scrollY>=s.offsetTop-130)cur=s.id;});
+  document.querySelectorAll('nav a').forEach(a=>{a.classList.toggle('active',a.getAttribute('href')==='#'+cur);});
+},{passive:true});
 
-// ── HERO IMAGE ──
-document.getElementById('heroInput').addEventListener('change', e => {
-  const f = e.target.files[0]; if (!f) return;
-  const url = URL.createObjectURL(f);
-  document.getElementById('heroImg').src = url;
-  document.getElementById('heroImg').style.display = 'block';
-  document.getElementById('heroPh').style.display = 'none';
+// ── HERO ──
+document.getElementById('heroFileInput').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const url=URL.createObjectURL(f);
+  const img=document.getElementById('heroImg');
+  img.src=url; img.style.display='block';
+  document.getElementById('heroPh').style.display='none';
+  e.target.value='';
 });
-
-// drag-drop hero
-const heroBgEl = document.getElementById('heroBg');
-['dragenter','dragover'].forEach(ev => heroBgEl.addEventListener(ev, e => e.preventDefault()));
-heroBgEl.addEventListener('drop', e => {
+document.getElementById('heroBg').addEventListener('dragover',e=>e.preventDefault());
+document.getElementById('heroBg').addEventListener('drop',e=>{
   e.preventDefault();
-  const f = e.dataTransfer.files[0];
-  if (!f || !f.type.startsWith('image/')) return;
-  const url = URL.createObjectURL(f);
-  document.getElementById('heroImg').src = url;
-  document.getElementById('heroImg').style.display = 'block';
-  document.getElementById('heroPh').style.display = 'none';
+  const f=e.dataTransfer.files[0];
+  if(!f||!f.type.startsWith('image/')) return;
+  const url=URL.createObjectURL(f);
+  document.getElementById('heroImg').src=url;
+  document.getElementById('heroImg').style.display='block';
+  document.getElementById('heroPh').style.display='none';
 });
 
 // ── EDIT MODE ──
-function toggleEdit() {
-  editing = !editing;
-  const btn = document.getElementById('editBtn');
-  btn.textContent = editing ? 'DONE' : 'EDIT MODE';
-  btn.classList.toggle('on', editing);
+// ── PASSWORD ──
+const PW = 'saekim2026'; // ← 여기서 비밀번호 변경
 
-  // toggle contenteditable
-  ['seqTitleA','seqTitleB','noteA','noteB'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.contentEditable = editing ? 'true' : 'false';
-  });
-  document.querySelectorAll('.work-cell-title, .work-cell-sub').forEach(el => {
-    el.contentEditable = editing ? 'true' : 'false';
-  });
-  document.querySelectorAll('.sb-panel-caption').forEach(el => {
-    el.contentEditable = editing ? 'true' : 'false';
-  });
-
-  // show/hide add buttons
-  document.querySelectorAll('.sb-add, .works-add').forEach(el => {
-    el.style.display = editing ? 'flex' : 'none';
-  });
-
-  updateCounts();
+function toggleEdit(){
+  if(editMode){ exitEdit(); return; }
+  openPwModal();
+}
+function openPwModal(){
+  document.getElementById('pwInput').value='';
+  document.getElementById('pwError').textContent='';
+  document.getElementById('pwInput').classList.remove('error');
+  document.getElementById('pwModalBg').classList.add('open');
+  setTimeout(()=>document.getElementById('pwInput').focus(),100);
+}
+function closePwModal(){
+  document.getElementById('pwModalBg').classList.remove('open');
+}
+function checkPw(){
+  const val=document.getElementById('pwInput').value;
+  if(val===PW){
+    closePwModal();
+    enterEdit();
+  } else {
+    const inp=document.getElementById('pwInput');
+    inp.classList.add('error');
+    document.getElementById('pwError').textContent='비밀번호가 틀렸습니다.';
+    setTimeout(()=>inp.classList.remove('error'),400);
+    inp.value='';
+  }
+}
+function enterEdit(){
+  editMode=true;
+  document.body.classList.add('edit-on');
+  const btn=document.getElementById('manageBtn');
+  btn.textContent='✓ DONE';
+  btn.classList.add('on');
+}
+function exitEdit(){
+  editMode=false;
+  document.body.classList.remove('edit-on');
+  const btn=document.getElementById('manageBtn');
+  btn.textContent='⚙ MANAGE';
+  btn.classList.remove('on');
 }
 
-// ── INIT GRIDS ──
-function initSbGrid(gridId, seqKey) {
-  const grid = document.getElementById(gridId);
-  const add = document.createElement('div');
-  add.className = 'sb-add';
-  add.textContent = '+ ADD PANEL';
-  add.style.display = 'none';
-  add.onclick = () => { sbTarget = {grid, key: seqKey}; document.getElementById('sbInput').click(); };
-  grid.appendChild(add);
+// ── ADD PROJECT (썸네일 선택 → 카드 생성) ──
+function addProject(key){
+  currentProjKey=key;
+  document.getElementById('projThumbInput').click();
 }
-function initWorksGrid(gridId) {
-  const grid = document.getElementById(gridId);
-  const add = document.createElement('div');
-  add.className = 'works-add';
-  add.textContent = '+ ADD IMAGE';
-  add.style.display = 'none';
-  add.onclick = () => { worksTarget = grid; document.getElementById('worksInput').click(); };
-  grid.appendChild(add);
-}
-initSbGrid('gridA','A');
-initSbGrid('gridB','B');
-initWorksGrid('gridConcept');
-initWorksGrid('gridPro');
-initWorksGrid('gridPersonal');
-
-// ── ADD STORYBOARD PANEL ──
-document.getElementById('sbInput').addEventListener('change', e => {
-  if (!sbTarget) return;
-  Array.from(e.target.files).forEach(f => addSbPanel(sbTarget.grid, f));
-  e.target.value = ''; updateCounts();
+document.getElementById('projThumbInput').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f||!currentProjKey) return;
+  const url=URL.createObjectURL(f);
+  const id='proj_'+(++projCounter);
+  const proj={id, key:currentProjKey, thumb:url, name:'Project '+projCounter, tag:tagFor(currentProjKey), desc:'', images:[]};
+  projects[currentProjKey].push(proj);
+  renderGrid(currentProjKey);
+  updateCount();
+  e.target.value='';
 });
-function addSbPanel(grid, file) {
-  const url = URL.createObjectURL(file);
-  const idx = grid.querySelectorAll('.sb-panel').length + 1;
-  const panel = document.createElement('div');
-  panel.className = 'sb-panel';
-  const img = document.createElement('img');
-  img.src = url; img.alt = '';
-  img.onclick = () => openLb(url);
-  const num = document.createElement('span');
-  num.className = 'sb-panel-num';
-  num.textContent = String(idx).padStart(2,'0');
-  const cap = document.createElement('div');
-  cap.className = 'sb-panel-caption';
-  cap.contentEditable = editing ? 'true' : 'false';
-  cap.textContent = 'CUT ' + String(idx).padStart(2,'0');
-  const del = document.createElement('button');
-  del.className = 'sb-panel-del'; del.textContent = '×';
-  del.onclick = ev => { ev.stopPropagation(); panel.remove(); renumberSb(grid); updateCounts(); };
-  panel.appendChild(img); panel.appendChild(num);
-  panel.appendChild(cap); panel.appendChild(del);
-  grid.insertBefore(panel, grid.lastElementChild);
-  updateCounts();
-}
-function renumberSb(grid) {
-  grid.querySelectorAll('.sb-panel').forEach((p,i) => {
-    p.querySelector('.sb-panel-num').textContent = String(i+1).padStart(2,'0');
+
+function tagFor(k){return k==='concept'?'CONCEPT':k==='pro'?'UNRELEASED':'PERSONAL';}
+
+// ── RENDER GRID ──
+function renderGrid(key){
+  const gridId={concept:'gridConcept',pro:'gridPro',personal:'gridPersonal'}[key];
+  const grid=document.getElementById(gridId);
+  const addBtn=grid.querySelector('.proj-add-btn');
+  // remove old cards
+  grid.querySelectorAll('.proj-card').forEach(c=>c.remove());
+  // insert before add btn
+  projects[key].forEach(proj=>{
+    const card=document.createElement('div');
+    card.className='proj-card';
+    card.dataset.id=proj.id;
+    card.innerHTML=`
+      <img class="proj-card-thumb" src="${proj.thumb}" alt="${proj.name}">
+      <div class="proj-card-overlay">
+        <span class="proj-card-tag">${proj.tag}</span>
+        <span class="proj-card-name">${proj.name}</span>
+        <span class="proj-card-sub">${proj.desc||'Click to view'}</span>
+      </div>
+      <span class="proj-card-count">${proj.images.length} images</span>`;
+    card.addEventListener('click',()=>openModal(proj.id, key));
+    grid.insertBefore(card,addBtn);
   });
 }
 
-// ── ADD WORKS ──
-document.getElementById('worksInput').addEventListener('change', e => {
-  if (!worksTarget) return;
-  Array.from(e.target.files).forEach(f => addWorkCell(worksTarget, f));
-  e.target.value = ''; updateCounts();
-});
-function addWorkCell(grid, file) {
-  const url = URL.createObjectURL(file);
-  const name = file.name.replace(/\.[^/.]+$/,'');
-  const cell = document.createElement('div');
-  cell.className = 'work-cell';
-  const img = document.createElement('img');
-  img.src = url; img.alt = name;
-  img.onclick = () => openLb(url);
-  const info = document.createElement('div');
-  info.className = 'work-cell-info';
-  info.innerHTML = `<span class="work-cell-tag">CONCEPT</span>
-    <span class="work-cell-title" contenteditable="false">${name}</span>
-    <span class="work-cell-sub" contenteditable="false">Personal</span>`;
-  const del = document.createElement('button');
-  del.className = 'work-cell-del'; del.textContent = '×';
-  del.onclick = ev => { ev.stopPropagation(); cell.remove(); updateCounts(); };
-  cell.appendChild(img); cell.appendChild(info); cell.appendChild(del);
-  grid.insertBefore(cell, grid.lastElementChild);
-  updateCounts();
+// ── OPEN PROJECT MODAL ──
+function openModal(projId, key){
+  const proj=projects[key].find(p=>p.id===projId);
+  if(!proj) return;
+  currentProjId=projId;
+  currentProjKey=key;
+  const content=document.getElementById('modalContent');
+  content.innerHTML=`
+    <div class="modal-tag">${proj.tag}</div>
+    <h2 class="modal-title">${proj.name}</h2>
+    <p class="modal-desc">${proj.desc||''}</p>
+    <img class="modal-hero" src="${proj.thumb}" alt="${proj.name}">
+    <div class="modal-gallery" id="modalGallery"></div>
+    <div class="modal-edit-bar">
+      <div>
+        <label>PROJECT NAME</label>
+        <input type="text" id="editName" value="${proj.name}" oninput="updateProjMeta()">
+      </div>
+      <div>
+        <label>DESCRIPTION</label>
+        <textarea id="editDesc" oninput="updateProjMeta()">${proj.desc||''}</textarea>
+      </div>
+      <button class="proj-add-btn" style="display:flex;aspect-ratio:unset;padding:12px 20px;" onclick="document.getElementById('projGalleryInput').click()">+ 이미지 추가</button>
+      <button style="padding:12px 20px;background:#ef4444;color:#fff;border:none;border-radius:2px;cursor:pointer;font-size:12px;letter-spacing:1px;" onclick="deleteProject()">프로젝트 삭제</button>
+    </div>`;
+  renderModalGallery(proj);
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow='hidden';
 }
 
-// ── COUNTS ──
-function updateCounts() {
-  const panels = document.querySelectorAll('.sb-panel').length;
-  const cells  = document.querySelectorAll('.work-cell').length;
-  document.getElementById('sbCount').textContent = panels + ' panels';
-  document.getElementById('worksCount').textContent = (panels + cells) + ' works';
+function renderModalGallery(proj){
+  const gallery=document.getElementById('modalGallery');
+  if(!gallery) return;
+  gallery.innerHTML='';
+  gallery.ondragover=(e)=>dzOver(e,gallery);
+  gallery.ondragleave=()=>dzLeave(gallery);
+  gallery.ondrop=(e)=>dzDropModal(e);
+  proj.images.forEach((imgSrc,i)=>{
+    const wrap=document.createElement('div');
+    wrap.className='modal-img-wrap';
+    wrap.innerHTML=`
+      <img src="${imgSrc}" alt="" onclick="openLb('${imgSrc}')">
+      <button class="modal-img-del" onclick="deleteModalImg(${i})">×</button>`;
+    gallery.appendChild(wrap);
+  });
+  // add button
+  const addBtn=document.createElement('button');
+  addBtn.className='modal-add-img';
+  addBtn.textContent='+ ADD IMAGE';
+  addBtn.onclick=()=>document.getElementById('projGalleryInput').click();
+  gallery.appendChild(addBtn);
 }
-updateCounts();
+
+function updateProjMeta(){
+  const proj=getProj();
+  if(!proj) return;
+  proj.name=document.getElementById('editName').value||proj.name;
+  proj.desc=document.getElementById('editDesc').value||'';
+  // update card
+  renderGrid(currentProjKey);
+}
+
+function deleteProject(){
+  if(!confirm('이 프로젝트를 삭제할까요?')) return;
+  projects[currentProjKey]=projects[currentProjKey].filter(p=>p.id!==currentProjId);
+  renderGrid(currentProjKey);
+  updateCount();
+  closeModal();
+}
+
+function deleteModalImg(idx){
+  const proj=getProj(); if(!proj) return;
+  proj.images.splice(idx,1);
+  renderModalGallery(proj);
+  renderGrid(currentProjKey);
+}
+
+function getProj(){
+  return currentProjKey&&currentProjId?projects[currentProjKey].find(p=>p.id===currentProjId):null;
+}
+
+// gallery image upload
+document.getElementById('projGalleryInput').addEventListener('change',e=>{
+  const proj=getProj(); if(!proj) return;
+  Array.from(e.target.files).forEach(f=>{
+    proj.images.push(URL.createObjectURL(f));
+  });
+  renderModalGallery(proj);
+  renderGrid(currentProjKey);
+  updateCount();
+  e.target.value='';
+});
+
+function closeModal(){
+  document.getElementById('modalBg').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// ── STORYBOARD ──
+function addSbPanel(stripId){
+  currentSbStrip=stripId;
+  document.getElementById('sbPanelInput').click();
+}
+document.getElementById('sbPanelInput').addEventListener('change',e=>{
+  if(!currentSbStrip) return;
+  Array.from(e.target.files).forEach(f=>{
+    sbPanels[currentSbStrip].push({src:URL.createObjectURL(f)});
+  });
+  renderStrip(currentSbStrip);
+  e.target.value='';
+});
+
+function renderStrip(stripId){
+  const strip=document.getElementById(stripId);
+  const addBtn=strip.querySelector('.sb-add-btn');
+  strip.querySelectorAll('.sb-panel').forEach(p=>p.remove());
+  sbPanels[stripId].forEach((item,i)=>{
+    const panel=document.createElement('div');
+    panel.className='sb-panel';
+    panel.innerHTML=`
+      <img src="${item.src}" alt="" onclick="openLb('${item.src}')">
+      <span class="sb-num">${String(i+1).padStart(2,'0')}</span>
+      <div class="sb-caption">CUT ${String(i+1).padStart(2,'0')}</div>`;
+    strip.insertBefore(panel,addBtn);
+  });
+}
+
+// ── COUNT ──
+function updateCount(){
+  const total=projects.concept.length+projects.pro.length+projects.personal.length;
+  document.getElementById('worksCount').textContent=total+' projects';
+}
 
 // ── LIGHTBOX ──
-function openLb(src) {
-  document.getElementById('lbImg').src = src;
-  document.getElementById('lb').classList.add('open');
-}
-function closeLb() { document.getElementById('lb').classList.remove('open'); }
-document.getElementById('lb').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeLb();
+function openLb(src){document.getElementById('lbImg').src=src;document.getElementById('lb').classList.add('open');}
+function closeLb(){document.getElementById('lb').classList.remove('open');}
+document.getElementById('lb').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLb();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeLb();closeModal();}
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
 
-// ── CONTACT ──
-function handleSend() {
-  alert('메시지가 전송되었습니다. 감사합니다!\nMessage sent — thank you!');
+// ── UNRELEASED WORKS LOCK ──
+const UNREL_PW = 'Saesunshine2026';
+let unrelUnlocked = false;
+
+function openUnrelModal(){
+  document.getElementById('unrelPwInput').value='';
+  document.getElementById('unrelPwError').textContent='';
+  document.getElementById('unrelPwInput').classList.remove('error');
+  document.getElementById('unrelModalBg').classList.add('open');
+  setTimeout(()=>document.getElementById('unrelPwInput').focus(),100);
 }
+function closeUnrelModal(){
+  document.getElementById('unrelModalBg').classList.remove('open');
+}
+function checkUnrelPw(){
+  const val=document.getElementById('unrelPwInput').value;
+  if(val===UNREL_PW){
+    closeUnrelModal();
+    unrelUnlocked=true;
+    document.getElementById('unrelOverlay').style.display='none';
+  } else {
+    const inp=document.getElementById('unrelPwInput');
+    inp.classList.add('error');
+    document.getElementById('unrelPwError').textContent='비밀번호가 틀렸습니다.';
+    setTimeout(()=>inp.classList.remove('error'),400);
+    inp.value='';
+  }
+}
+
+
+// ── DRAG & DROP ──
+function dzOver(e, el){
+  e.preventDefault();
+  if(!editMode) return;
+  el.classList.add('drag-over');
+}
+function dzLeave(el){ el.classList.remove('drag-over'); }
+
+function dzDrop(e, key){
+  e.preventDefault();
+  const el = e.currentTarget;
+  el.classList.remove('drag-over');
+  if(!editMode) return;
+  const files = Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  if(!files.length) return;
+  files.forEach(f=>{
+    const url = URL.createObjectURL(f);
+    const id = 'proj_'+(++projCounter);
+    const name = f.name.replace(/\.[^/.]+$/,'');
+    const proj = {id, key, thumb:url, name, tag:tagFor(key), desc:'', images:[]};
+    projects[key].push(proj);
+  });
+  renderGrid(key);
+  updateCount();
+}
+
+function dzDropSb(e, stripId){
+  e.preventDefault();
+  const el = e.currentTarget;
+  el.classList.remove('drag-over');
+  if(!editMode) return;
+  const files = Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  if(!files.length) return;
+  files.forEach(f=>{ sbPanels[stripId].push({src:URL.createObjectURL(f)}); });
+  renderStrip(stripId);
+}
+
+function dzDropModal(e){
+  e.preventDefault();
+  const gallery = document.getElementById('modalGallery');
+  if(gallery) gallery.classList.remove('drag-over');
+  if(!editMode) return;
+  const proj = getProj(); if(!proj) return;
+  const files = Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  if(!files.length) return;
+  files.forEach(f=>{ proj.images.push(URL.createObjectURL(f)); });
+  renderModalGallery(proj);
+  renderGrid(currentProjKey);
+}
+
+// hero drag-drop (always on)
+document.getElementById('heroBg').addEventListener('dragover', e=>{
+  e.preventDefault();
+  document.getElementById('heroBg').style.outline='2px dashed var(--paper)';
+});
+document.getElementById('heroBg').addEventListener('dragleave', ()=>{
+  document.getElementById('heroBg').style.outline='';
+});
+document.getElementById('heroBg').addEventListener('drop', e=>{
+  e.preventDefault();
+  document.getElementById('heroBg').style.outline='';
+  const f = e.dataTransfer.files[0];
+  if(!f||!f.type.startsWith('image/')) return;
+  const url = URL.createObjectURL(f);
+  document.getElementById('heroImg').src=url;
+  document.getElementById('heroImg').style.display='block';
+  document.getElementById('heroPh').style.display='none';
+});
+
 </script>
+
+<!-- PASSWORD MODAL -->
+<div class="pw-modal-bg" id="pwModalBg">
+  <div class="pw-modal">
+    <div class="pw-modal-title">MANAGE MODE</div>
+    <input class="pw-input" id="pwInput" type="password" placeholder="비밀번호" maxlength="20"
+      onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="pw-submit" onclick="checkPw()">UNLOCK</button>
+    <p class="pw-error" id="pwError"></p>
+    <button class="pw-cancel" onclick="closePwModal()">취소</button>
+  </div>
+</div>
+
+
+<!-- UNRELEASED WORKS PASSWORD MODAL -->
+<div class="pw-modal-bg" id="unrelModalBg">
+  <div class="pw-modal">
+    <div class="pw-modal-title">UNRELEASED WORKS</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">이 섹션은 비공개 작업물입니다.<br>접근 비밀번호를 입력해주세요.</p>
+    <input class="pw-input" id="unrelPwInput" type="password" placeholder="비밀번호" maxlength="30"
+      onkeydown="if(event.key==='Enter')checkUnrelPw()">
+    <button class="pw-submit" onclick="checkUnrelPw()">ENTER</button>
+    <p class="pw-error" id="unrelPwError"></p>
+    <button class="pw-cancel" onclick="closeUnrelModal()">취소</button>
+  </div>
+</div>
+
 </body>
 </html>
