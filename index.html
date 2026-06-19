@@ -446,6 +446,8 @@ function initGoogleApi() {
       await getOrCreateDriveFolder();
       showDriveStatus('☁️ 드라이브 연결됨');
       updateDriveBar();
+      // Drive에서 최신 데이터 불러오기
+      await loadFromDrive();
     }
   });
   gsiReady = true;
@@ -461,9 +463,11 @@ function checkGoogleReady() {
       googleAccessToken = savedToken;
       gapi.client.setToken({ access_token: googleAccessToken });
       getOrCreateDriveFolder()
-        .then(() => {
+        .then(async () => {
           showDriveStatus('☁️ 드라이브 연결됨');
           updateDriveBar();
+          // 저장된 토큰으로 자동 재연결 시 Drive에서 데이터 불러오기
+          await loadFromDrive();
         })
         .catch(() => {
           googleAccessToken = null;
@@ -647,38 +651,74 @@ async function saveToStorage() {
 }
 
 
+// Drive에서 portfolio_data.json 불러오기
+async function loadFromDrive() {
+  if (!googleAccessToken || !driveFolderId) return false;
+  try {
+    showDriveStatus('☁️ 데이터 불러오는 중...');
+    const res = await gapi.client.drive.files.list({
+      q: "name='portfolio_data.json' and '" + driveFolderId + "' in parents and trashed=false",
+      fields: 'files(id, name)',
+      spaces: 'drive'
+    });
+    if (!res.result.files || res.result.files.length === 0) {
+      showDriveStatus('☁️ 드라이브 연결됨');
+      return false;
+    }
+    const fileId = res.result.files[0].id;
+    const dlRes = await fetch(
+      'https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media',
+      { headers: { 'Authorization': 'Bearer ' + googleAccessToken } }
+    );
+    if (!dlRes.ok) { showDriveStatus('☁️ 드라이브 연결됨'); return false; }
+    const data = await dlRes.json();
+    applyLoadedData(data);
+    showDriveStatus('☁️ 드라이브 연결됨 ✓');
+    return true;
+  } catch(e) {
+    console.warn('Drive 불러오기 실패:', e);
+    showDriveStatus('☁️ 드라이브 연결됨');
+    return false;
+  }
+}
+
+// 불러온 데이터 적용
+function applyLoadedData(data) {
+  if (data.projects) projects = data.projects;
+  if (data.sbPanels) sbPanels = data.sbPanels;
+  if (data.projCounter) projCounter = data.projCounter;
+  if (data.heroSrc && data.heroSrc.startsWith('http')) {
+    const img = document.getElementById('heroImg');
+    const ph  = document.getElementById('heroPh');
+    img.src = data.heroSrc;
+    img.style.display = 'block';
+    ph.style.display  = 'none';
+  }
+  renderGrid('concept');
+  renderGrid('pro');
+  renderGrid('personal');
+  renderStrip('stripA');
+  updateCount();
+}
+
 async function loadFromStorage() {
   try {
-    // 기존 base64 데이터 정리 (용량 확보)
+    // 기존 base64 대용량 데이터 정리
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw && raw.length > 500000) {
-        console.log('기존 대용량 데이터 정리 중...');
+      if (raw && raw.length > 200000) {
         localStorage.removeItem(STORAGE_KEY);
-        console.log('정리 완료');
-        return;
+        console.log('기존 대용량 데이터 정리 완료');
       }
     } catch(e) {}
+
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    if (data.projects) projects = data.projects;
-    if (data.sbPanels) sbPanels = data.sbPanels;
-    if (data.projCounter) projCounter = data.projCounter;
-    if (data.heroSrc && data.heroSrc.startsWith('data:')) {
-      const img = document.getElementById('heroImg');
-      const ph  = document.getElementById('heroPh');
-      img.src = data.heroSrc;
-      img.style.display = 'block';
-      ph.style.display  = 'none';
+    if (raw) {
+      const data = JSON.parse(raw);
+      applyLoadedData(data);
     }
-    renderGrid('concept');
-    renderGrid('pro');
-    renderGrid('personal');
-    renderStrip('stripA');
-    updateCount();
   } catch(e) {
-    console.warn('불러오기 실패:', e);
+    console.warn('로컬 불러오기 실패:', e);
   }
 }
 
