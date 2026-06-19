@@ -532,21 +532,21 @@ async function saveToDrive(filename, content) {
       method = 'PATCH';
       delete meta.parents;
     }
-    const body = '--' + boundary + '
-Content-Type: application/json
-
-' +
-      JSON.stringify(meta) + '
---' + boundary + '
-Content-Type: ' + mimeType +
-      '
-Content-Transfer-Encoding: base64
-
-' + encoded + '
---' + boundary + '--';
+    const CRLF = '\r\n';
+    const body = '--' + boundary + CRLF +
+      'Content-Type: application/json' + CRLF + CRLF +
+      JSON.stringify(meta) + CRLF +
+      '--' + boundary + CRLF +
+      'Content-Type: ' + mimeType + CRLF +
+      'Content-Transfer-Encoding: base64' + CRLF + CRLF +
+      encoded + CRLF +
+      '--' + boundary + '--';
     await fetch(url, {
       method,
-      headers: { 'Authorization': 'Bearer ' + googleAccessToken, 'Content-Type': 'multipart/related; boundary="' + boundary + '"' },
+      headers: {
+        'Authorization': 'Bearer ' + googleAccessToken,
+        'Content-Type': 'multipart/related; boundary="' + boundary + '"'
+      },
       body
     });
   } catch(e) {
