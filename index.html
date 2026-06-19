@@ -681,22 +681,30 @@ window.addEventListener('scroll',()=>{
 // ─────────────────────────────────────────
 // HERO
 // ─────────────────────────────────────────
-document.getElementById('heroFileInput').addEventListener('change', async e=>{
+document.document.getElementById('heroFileInput').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f||!editMode) return;
-  const src = await processImage(f, 'hero.jpg');
+  const base64 = await fileToBase64(f);
   const img=document.getElementById('heroImg');
-  img.src=src; img.style.display='block';
+  // 즉시 base64로 표시
+  img.src=base64; img.style.display='block';
   document.getElementById('heroPh').style.display='none';
   e.target.value='';
+  // 드라이브 연결 시 백그라운드 업로드 후 src 교체
+  if(googleAccessToken && driveFolderId){
+    try {
+      const driveUrl = await uploadToDrive(base64, 'hero.jpg');
+      if(driveUrl) img.src = driveUrl;
+    } catch(err){ console.warn('Drive hero upload failed:', err); }
+  }
   saveToStorage();
 });
 
-document.getElementById('heroBg').addEventListener('dragover',e=>{
+document.getElementById('heroBg').addEventListener('dragover', e=>{
   e.preventDefault();
   if(!editMode) return;
   document.getElementById('heroBg').style.outline='2px dashed var(--paper)';
 });
-document.getElementById('heroBg').addEventListener('dragleave',()=>{
+document.getElementById('heroBg').addEventListener('dragleave', ()=>{
   document.getElementById('heroBg').style.outline='';
 });
 document.getElementById('heroBg').addEventListener('drop', async e=>{
@@ -705,12 +713,19 @@ document.getElementById('heroBg').addEventListener('drop', async e=>{
   if(!editMode) return;
   const f=e.dataTransfer.files[0];
   if(!f||!f.type.startsWith('image/')) return;
-  const src = await processImage(f, 'hero.jpg');
-  document.getElementById('heroImg').src=src;
-  document.getElementById('heroImg').style.display='block';
+  const base64 = await fileToBase64(f);
+  const img=document.getElementById('heroImg');
+  img.src=base64; img.style.display='block';
   document.getElementById('heroPh').style.display='none';
+  if(googleAccessToken && driveFolderId){
+    try {
+      const driveUrl = await uploadToDrive(base64, 'hero.jpg');
+      if(driveUrl) img.src = driveUrl;
+    } catch(err){ console.warn('Drive hero drop upload failed:', err); }
+  }
   saveToStorage();
 });
+
 
 // ─────────────────────────────────────────
 // EDIT MODE
@@ -787,21 +802,31 @@ function addProject(key){
 }
 document.getElementById('projThumbInput').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f||!currentProjKey) return;
-  const src = await processImage(f, `thumb_${++projCounter}.jpg`);
+  // 먼저 base64로 읽어서 즉시 미리보기 가능하게
+  const base64 = await fileToBase64(f);
+  projCounter++;
   const id='proj_'+projCounter;
-  const proj={id, key:currentProjKey, thumb:src, name:'Project '+projCounter, tag:tagFor(currentProjKey), desc:'', images:[]};
+  // 카드 즉시 base64로 생성 (드라이브 업로드 전에 먼저 표시)
+  const proj={id, key:currentProjKey, thumb:base64, name:'Project '+projCounter, tag:tagFor(currentProjKey), desc:'', images:[]};
   projects[currentProjKey].push(proj);
   renderGrid(currentProjKey);
   updateCount();
-  saveToStorage();
   e.target.value='';
+  // 드라이브 연결 시 백그라운드로 업로드 후 URL 교체
+  if(googleAccessToken && driveFolderId){
+    try {
+      const driveUrl = await uploadToDrive(base64, `thumb_${id}.jpg`);
+      if(driveUrl){
+        proj.thumb = driveUrl;
+        renderGrid(currentProjKey);
+      }
+    } catch(err){ console.warn('Drive upload failed, keeping base64:', err); }
+  }
+  saveToStorage();
 });
 
 function tagFor(k){return k==='concept'?'CONCEPT':k==='pro'?'UNRELEASED':'PERSONAL';}
 
-// ─────────────────────────────────────────
-// RENDER GRID
-// ─────────────────────────────────────────
 function renderGrid(key){
   const gridId={concept:'gridConcept',pro:'gridPro',personal:'gridPersonal'}[key];
   const grid=document.getElementById(gridId);
@@ -907,15 +932,22 @@ function getProj(){
   return currentProjKey&&currentProjId?projects[currentProjKey].find(p=>p.id===currentProjId):null;
 }
 
-document.getElementById('projGalleryInput').addEventListener('change', async e=>{
+document.document.getElementById('projGalleryInput').addEventListener('change', async e=>{
   const proj=getProj(); if(!proj) return;
-  let idx=0;
   for(const f of e.target.files){
-    const src = await processImage(f, `gallery_${proj.id}_${idx++}.jpg`);
-    proj.images.push(src);
+    const base64 = await fileToBase64(f);
+    proj.images.push(base64);
+    renderModalGallery(proj);
+    renderGrid(currentProjKey);
+    // 드라이브 연결 시 백그라운드 업로드 후 URL 교체
+    if(googleAccessToken && driveFolderId){
+      const idx = proj.images.length - 1;
+      try {
+        const driveUrl = await uploadToDrive(base64, `gallery_${proj.id}_${idx}.jpg`);
+        if(driveUrl){ proj.images[idx] = driveUrl; renderModalGallery(proj); renderGrid(currentProjKey); }
+      } catch(err){ console.warn('Drive gallery upload failed:', err); }
+    }
   }
-  renderModalGallery(proj);
-  renderGrid(currentProjKey);
   updateCount();
   saveToStorage();
   e.target.value='';
@@ -933,14 +965,21 @@ function addSbPanel(stripId){
   currentSbStrip=stripId;
   document.getElementById('sbPanelInput').click();
 }
-document.getElementById('sbPanelInput').addEventListener('change', async e=>{
+document.document.getElementById('sbPanelInput').addEventListener('change', async e=>{
   if(!currentSbStrip) return;
-  let idx=0;
   for(const f of e.target.files){
-    const src = await processImage(f, `sb_${currentSbStrip}_${idx++}.jpg`);
-    sbPanels[currentSbStrip].push({src});
+    const base64 = await fileToBase64(f);
+    sbPanels[currentSbStrip].push({src: base64});
+    renderStrip(currentSbStrip);
+    // 드라이브 연결 시 백그라운드 업로드 후 URL 교체
+    if(googleAccessToken && driveFolderId){
+      const idx = sbPanels[currentSbStrip].length - 1;
+      try {
+        const driveUrl = await uploadToDrive(base64, `sb_${currentSbStrip}_${idx}.jpg`);
+        if(driveUrl){ sbPanels[currentSbStrip][idx].src = driveUrl; renderStrip(currentSbStrip); }
+      } catch(err){ console.warn('Drive sb upload failed:', err); }
+    }
   }
-  renderStrip(currentSbStrip);
   saveToStorage();
   e.target.value='';
 });
@@ -965,18 +1004,24 @@ function renderStrip(stripId){
 // ─────────────────────────────────────────
 function dzDropSb(e, stripId){
   e.preventDefault();
-  const el=e.currentTarget;
-  el.classList.remove('drag-over');
+  const el2=e.currentTarget;
+  el2.classList.remove('drag-over');
   if(!editMode) return;
   const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
   if(!files.length) return;
   (async()=>{
-    let idx=0;
     for(const f of files){
-      const src = await processImage(f, `sb_${stripId}_${idx++}.jpg`);
-      sbPanels[stripId].push({src});
+      const base64 = await fileToBase64(f);
+      sbPanels[stripId].push({src: base64});
+      renderStrip(stripId);
+      if(googleAccessToken && driveFolderId){
+        const idx = sbPanels[stripId].length - 1;
+        try {
+          const driveUrl = await uploadToDrive(base64, `sb_${stripId}_${idx}.jpg`);
+          if(driveUrl){ sbPanels[stripId][idx].src = driveUrl; renderStrip(stripId); }
+        } catch(err){ console.warn('Drive sb drop upload failed:', err); }
+      }
     }
-    renderStrip(stripId);
     saveToStorage();
   })();
 }
@@ -990,13 +1035,19 @@ function dzDropModal(e){
   const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
   if(!files.length) return;
   (async()=>{
-    let idx=0;
     for(const f of files){
-      const src = await processImage(f, `gallery_${proj.id}_${idx++}.jpg`);
-      proj.images.push(src);
+      const base64 = await fileToBase64(f);
+      proj.images.push(base64);
+      renderModalGallery(proj);
+      renderGrid(currentProjKey);
+      if(googleAccessToken && driveFolderId){
+        const idx = proj.images.length - 1;
+        try {
+          const driveUrl = await uploadToDrive(base64, `gallery_${proj.id}_drop_${idx}.jpg`);
+          if(driveUrl){ proj.images[idx] = driveUrl; renderModalGallery(proj); renderGrid(currentProjKey); }
+        } catch(err){ console.warn('Drive modal drop upload failed:', err); }
+      }
     }
-    renderModalGallery(proj);
-    renderGrid(currentProjKey);
     saveToStorage();
   })();
 }
