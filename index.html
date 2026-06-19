@@ -571,7 +571,56 @@ async function saveToStorage() {
     localStorage.setItem(STORAGE_KEY, json);
     if (googleAccessToken && driveFolderId) {
       saveToDrive('portfolio_data.json', json).catch(() => {});
+    }async function saveToDriveAndGetId(filename, encoded, mimeType) {
+  if (!googleAccessToken || !driveFolderId) return null;
+  try {
+    const boundary = 'foo_bar_baz';
+    const CRLF = '\r\n';
+    const meta = { name: filename, parents: [driveFolderId] };
+    const existing = await gapi.client.drive.files.list({
+      q: "name='" + filename + "' and '" + driveFolderId + "' in parents and trashed=false",
+      fields: 'files(id)'
+    });
+    let method = 'POST';
+    let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id';
+    if (existing.result.files && existing.result.files.length > 0) {
+      const existingId = existing.result.files[0].id;
+      method = 'PATCH';
+      url = 'https://www.googleapis.com/upload/drive/v3/files/' + existingId + '?uploadType=multipart&fields=id';
+      delete meta.parents;
     }
+    const body = '--' + boundary + CRLF +
+      'Content-Type: application/json' + CRLF + CRLF +
+      JSON.stringify(meta) + CRLF +
+      '--' + boundary + CRLF +
+      'Content-Type: ' + mimeType + CRLF +
+      'Content-Transfer-Encoding: base64' + CRLF + CRLF +
+      encoded + CRLF +
+      '--' + boundary + '--';
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Authorization': 'Bearer ' + googleAccessToken,
+        'Content-Type': 'multipart/related; boundary=' + boundary
+      },
+      body
+    });
+    const result = await res.json();
+    // Drive 파일 공개 접근 설정
+    await fetch('https://www.googleapis.com/drive/v3/files/' + result.id + '/permissions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + googleAccessToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ role: 'reader', type: 'anyone' })
+    });
+    return result.id;
+  } catch(e) {
+    console.warn('saveToDriveAndGetId error:', e);
+    return null;
+  }
+}
   } catch(e) {
     console.warn('저장 오류:', e);
     if (e.name === 'QuotaExceededError') alert('⚠️ 로컬 저장 공간 부족.');
