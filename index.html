@@ -382,10 +382,10 @@ input[type=file]{display:none;}
 <button class="manage-btn" id="manageBtn" onclick="toggleEdit()">⚙ MANAGE</button>
 
 <!-- DRIVE STATUS BAR -->
-<div id="driveBar" style="display:none;position:fixed;bottom:68px;right:24px;z-index:600;background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:8px 14px;font-size:11px;letter-spacing:1px;color:var(--muted);backdrop-filter:blur(8px);display:flex;align-items:center;gap:8px;">
+<div id="driveBar" style="display:none;position:fixed;bottom:68px;right:24px;z-index:600;background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:8px 14px;font-size:11px;letter-spacing:1px;color:var(--muted);backdrop-filter:blur(8px);align-items:center;gap:8px;">
   <span id="driveStatus">☁️ 연결 안됨</span>
-  <button onclick="signInGoogle()" style="padding:4px 10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px;">연결</button>
-  <button onclick="signOutGoogle()" style="padding:4px 10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px;">해제</button>
+  <button id="driveConnectBtn" onclick="signInGoogle()" style="padding:4px 10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px;">연결</button>
+  <button id="driveDisconnectBtn" onclick="signOutGoogle()" style="display:none;padding:4px 10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px;">해제</button>
 </div>
 
 <!-- FILE INPUTS -->
@@ -442,6 +442,7 @@ function initGoogleApi() {
       await getOrCreateDriveFolder();
       loadFromStorage();
       showDriveStatus('☁️ 드라이브 연결됨');
+      updateDriveBar();
     }
   });
   gsiReady = true;
@@ -453,13 +454,33 @@ function checkGoogleReady() {
     const savedToken = localStorage.getItem('gd_token');
     if (savedToken) {
       googleAccessToken = savedToken;
-      getOrCreateDriveFolder().then(() => {
-        loadFromStorage();
-        showDriveStatus('☁️ 드라이브 연결됨');
-      }).catch(() => { googleAccessToken = null; loadFromStorage(); });
+      showDriveStatus('☁️ 재연결 중...');
+      getOrCreateDriveFolder()
+        .then(() => {
+          loadFromStorage();
+          showDriveStatus('☁️ 드라이브 연결됨');
+          updateDriveBar();
+        })
+        .catch(() => {
+          // 토큰 만료 → silent 재발급 시도
+          googleAccessToken = null;
+          localStorage.removeItem('gd_token');
+          showDriveStatus('☁️ 연결 안됨');
+          trysilentSignIn();
+          loadFromStorage();
+        });
     } else {
       loadFromStorage();
     }
+  }
+}
+
+function trysilentSignIn() {
+  if (!tokenClient) return;
+  try {
+    tokenClient.requestAccessToken({ prompt: 'none' });
+  } catch(e) {
+    // silent 실패 — 사용자가 수동으로 연결해야 함
   }
 }
 
@@ -467,17 +488,15 @@ function signInGoogle() {
   if (!tokenClient) { alert('Google API 로딩 중입니다. 잠시 후 다시 시도하세요.'); return; }
   tokenClient.requestAccessToken({ prompt: '' });
 }
-
 function signOutGoogle() {
   if (googleAccessToken) {
     google.accounts.oauth2.revoke(googleAccessToken, () => {});
     googleAccessToken = null;
     driveFolderId = null;
     localStorage.removeItem('gd_token');
-    showDriveStatus('☁️ 연결 안됨');
+    updateDriveBar();
   }
 }
-
 async function getOrCreateDriveFolder() {
   if (!googleAccessToken) return;
   try {
@@ -732,7 +751,7 @@ function enterEdit(){
   btn.textContent='✓ DONE';
   btn.classList.add('on');
   const db=document.getElementById('driveBar');
-  if(db) db.style.display='flex';
+  if(db){ db.style.display='flex'; updateDriveBar(); }
 }
 function exitEdit(){
   editMode=false;
@@ -743,6 +762,21 @@ function exitEdit(){
   const db=document.getElementById('driveBar');
   if(db) db.style.display='none';
 }
+function updateDriveBar(){
+  const connectBtn=document.getElementById('driveConnectBtn');
+  const disconnectBtn=document.getElementById('driveDisconnectBtn');
+  if(!connectBtn||!disconnectBtn) return;
+  if(googleAccessToken && driveFolderId){
+    connectBtn.style.display='none';
+    disconnectBtn.style.display='inline-block';
+    showDriveStatus('☁️ 드라이브 연결됨');
+  } else {
+    connectBtn.style.display='inline-block';
+    disconnectBtn.style.display='none';
+    showDriveStatus('☁️ 연결 안됨');
+  }
+}
+
 
 // ─────────────────────────────────────────
 // ADD PROJECT
