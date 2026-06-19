@@ -563,15 +563,8 @@ function showDriveStatus(msg) {
 const STORAGE_KEY = 'saekim_portfolio';
 
 
-async function saveToStorage() {
-  try {
-    const heroSrc = document.getElementById('heroImg').src || '';
-    const data = { projects, sbPanels, projCounter, heroSrc: heroSrc.startsWith('data:') ? heroSrc : '' };
-    const json = JSON.stringify(data);
-    localStorage.setItem(STORAGE_KEY, json);
-    if (googleAccessToken && driveFolderId) {
-      saveToDrive('portfolio_data.json', json).catch(() => {});
-    }async function saveToDriveAndGetId(filename, encoded, mimeType) {
+// Drive에 파일 업로드 후 fileId 반환
+async function saveToDriveAndGetId(filename, encoded, mimeType) {
   if (!googleAccessToken || !driveFolderId) return null;
   try {
     const boundary = 'foo_bar_baz';
@@ -621,15 +614,51 @@ async function saveToStorage() {
     return null;
   }
 }
+
+// localStorage 저장 — base64는 제외하고 Drive URL만 저장
+async function saveToStorage() {
+  try {
+    const heroSrc = document.getElementById('heroImg').src || '';
+    // base64 이미지는 localStorage에 저장하지 않음 (용량 초과 방지)
+    // Drive URL(http)만 저장, base64(data:)는 제외
+    const safeProjects = {};
+    for (const key of Object.keys(projects)) {
+      safeProjects[key] = projects[key].map(p => ({
+        ...p,
+        thumb: p.thumb && p.thumb.startsWith('http') ? p.thumb : '',
+        images: (p.images || []).filter(img => img.startsWith('http'))
+      }));
+    }
+    const safeSbPanels = {};
+    for (const key of Object.keys(sbPanels)) {
+      safeSbPanels[key] = (sbPanels[key] || []).filter(p => p.src && p.src.startsWith('http'));
+    }
+    const safeHero = heroSrc.startsWith('http') ? heroSrc : '';
+    const data = { projects: safeProjects, sbPanels: safeSbPanels, projCounter, heroSrc: safeHero };
+    const json = JSON.stringify(data);
+    localStorage.setItem(STORAGE_KEY, json);
+    if (googleAccessToken && driveFolderId) {
+      saveToDrive('portfolio_data.json', json).catch(() => {});
+    }
   } catch(e) {
     console.warn('저장 오류:', e);
-    if (e.name === 'QuotaExceededError') alert('⚠️ 로컬 저장 공간 부족.');
+    if (e.name === 'QuotaExceededError') alert('⚠️ 로컬 저장 공간 부족. Google Drive를 연결하면 이 문제가 해결됩니다.');
   }
 }
 
 
 async function loadFromStorage() {
   try {
+    // 기존 base64 데이터 정리 (용량 확보)
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw && raw.length > 500000) {
+        console.log('기존 대용량 데이터 정리 중...');
+        localStorage.removeItem(STORAGE_KEY);
+        console.log('정리 완료');
+        return;
+      }
+    } catch(e) {}
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     const data = JSON.parse(raw);
