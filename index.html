@@ -413,18 +413,20 @@ const GOOGLE_API_KEY   = 'AIzaSyB87gMyxGt5KxoL0HXFloCoeKK_9uzp20Y';
 const DRIVE_FOLDER_NAME = 'SaeKim Portfolio';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
+
 let googleAccessToken = null;
 let driveFolderId = null;
 let tokenClient = null;
 let gapiReady = false;
 let gsiReady = false;
 
+
 function initGoogleApi() {
   if (typeof gapi === 'undefined' || typeof google === 'undefined') {
     setTimeout(initGoogleApi, 500);
     return;
   }
-  gapi.load('client:picker', async () => {
+  gapi.load('client', async () => {
     await gapi.client.init({
       apiKey: GOOGLE_API_KEY,
       discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
@@ -438,9 +440,10 @@ function initGoogleApi() {
     callback: async (resp) => {
       if (resp.error) { showDriveStatus('⚠️ 로그인 실패'); return; }
       googleAccessToken = resp.access_token;
+      gapi.client.setToken({ access_token: googleAccessToken });
+      localStorage.setItem('gd_token', googleAccessToken);
       showDriveStatus('☁️ 연결 중...');
       await getOrCreateDriveFolder();
-      loadFromStorage();
       showDriveStatus('☁️ 드라이브 연결됨');
       updateDriveBar();
     }
@@ -449,40 +452,30 @@ function initGoogleApi() {
   checkGoogleReady();
 }
 
+
 function checkGoogleReady() {
   if (gapiReady && gsiReady) {
+    loadFromStorage();
     const savedToken = localStorage.getItem('gd_token');
     if (savedToken) {
       googleAccessToken = savedToken;
-      showDriveStatus('☁️ 재연결 중...');
+      gapi.client.setToken({ access_token: googleAccessToken });
       getOrCreateDriveFolder()
         .then(() => {
-          loadFromStorage();
           showDriveStatus('☁️ 드라이브 연결됨');
           updateDriveBar();
         })
         .catch(() => {
-          // 토큰 만료 → silent 재발급 시도
           googleAccessToken = null;
+          driveFolderId = null;
           localStorage.removeItem('gd_token');
           showDriveStatus('☁️ 연결 안됨');
-          trysilentSignIn();
-          loadFromStorage();
+          updateDriveBar();
         });
-    } else {
-      loadFromStorage();
     }
   }
 }
 
-function trysilentSignIn() {
-  if (!tokenClient) return;
-  try {
-    tokenClient.requestAccessToken({ prompt: 'none' });
-  } catch(e) {
-    // silent 실패 — 사용자가 수동으로 연결해야 함
-  }
-}
 
 function signInGoogle() {
   if (!tokenClient) { alert('Google API 로딩 중입니다. 잠시 후 다시 시도하세요.'); return; }
@@ -494,114 +487,81 @@ function signOutGoogle() {
     googleAccessToken = null;
     driveFolderId = null;
     localStorage.removeItem('gd_token');
+    gapi.client.setToken(null);
+    showDriveStatus('☁️ 연결 안됨');
     updateDriveBar();
   }
 }
 async function getOrCreateDriveFolder() {
-  if (!googleAccessToken) return;
+  if (!googleAccessToken) throw new Error('no token');
   try {
     const res = await gapi.client.drive.files.list({
-      q: `name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-      fields: 'files(id,name)'
+      q: "name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false",
+      fields: 'files(id,name)',
+      spaces: 'drive'
     });
-    if (res.result.files.length > 0) {
+    if (res.result.files && res.result.files.length > 0) {
       driveFolderId = res.result.files[0].id;
-    } else {
-      const folder = await gapi.client.drive.files.create({
-        resource: { name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' },
-        fields: 'id'
-      });
-      driveFolderId = folder.result.id;
+      return;
     }
-    localStorage.setItem('gd_token', googleAccessToken);
+    const create = await gapi.client.drive.files.create({
+      resource: { name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' },
+      fields: 'id'
+    });
+    driveFolderId = create.result.id;
   } catch(e) {
     console.warn('Drive folder error:', e);
+    throw e;
   }
 }
-
-async function uploadToDrive(base64Data, filename) {
-  if (!googleAccessToken || !driveFolderId) return null;
+async function saveToDrive(filename, content) {
+  if (!googleAccessToken || !driveFolderId) return;
   try {
-    const [meta, data] = base64Data.split(',');
-    const mime = meta.match(/:(.*?);/)[1];
-    const binary = atob(data);
-    const arr = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
-    const blob = new Blob([arr], { type: mime });
-    const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify({
-      name: filename, parents: [driveFolderId]
-    })], { type: 'application/json' }));
-    form.append('file', blob);
-    const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${googleAccessToken}` },
-      body: form
-    });
-    const result = await resp.json();
-    await fetch(`https://www.googleapis.com/drive/v3/files/${result.id}/permissions`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role: 'reader', type: 'anyone' })
-    });
-    return `https://drive.google.com/uc?export=view&id=${result.id}`;
-  } catch(e) {
-    console.warn('Drive upload error:', e);
-    return null;
-  }
-}
-
-async function saveToDrive(filename, jsonData) {
-  if (!googleAccessToken || !driveFolderId) return null;
-  try {
+    const boundary = 'boundary314159';
+    const mimeType = 'application/json';
+    const encoded = btoa(unescape(encodeURIComponent(content)));
     const existing = await gapi.client.drive.files.list({
-      q: `name='${filename}' and '${driveFolderId}' in parents and trashed=false`,
+      q: "name='" + filename + "' and '" + driveFolderId + "' in parents and trashed=false",
       fields: 'files(id)'
     });
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify({
-      name: filename, parents: existing.result.files.length ? undefined : [driveFolderId]
-    })], { type: 'application/json' }));
-    form.append('file', blob);
     let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
     let method = 'POST';
-    if (existing.result.files.length > 0) {
-      url = `https://www.googleapis.com/upload/drive/v3/files/${existing.result.files[0].id}?uploadType=multipart`;
+    const meta = { name: filename, parents: [driveFolderId] };
+    if (existing.result.files && existing.result.files.length > 0) {
+      url = 'https://www.googleapis.com/upload/drive/v3/files/' + existing.result.files[0].id + '?uploadType=multipart';
       method = 'PATCH';
+      delete meta.parents;
     }
-    await fetch(url, { method, headers: { Authorization: `Bearer ${googleAccessToken}` }, body: form });
+    const body = '--' + boundary + '
+Content-Type: application/json
+
+' +
+      JSON.stringify(meta) + '
+--' + boundary + '
+Content-Type: ' + mimeType +
+      '
+Content-Transfer-Encoding: base64
+
+' + encoded + '
+--' + boundary + '--';
+    await fetch(url, {
+      method,
+      headers: { 'Authorization': 'Bearer ' + googleAccessToken, 'Content-Type': 'multipart/related; boundary="' + boundary + '"' },
+      body
+    });
   } catch(e) {
     console.warn('Drive save error:', e);
   }
 }
-
-async function loadFromDrive(filename) {
-  if (!googleAccessToken || !driveFolderId) return null;
-  try {
-    const res = await gapi.client.drive.files.list({
-      q: `name='${filename}' and '${driveFolderId}' in parents and trashed=false`,
-      fields: 'files(id)'
-    });
-    if (!res.result.files.length) return null;
-    const fileId = res.result.files[0].id;
-    const data = await gapi.client.drive.files.get({ fileId, alt: 'media' });
-    return data.body;
-  } catch(e) {
-    console.warn('Drive load error:', e);
-    return null;
-  }
-}
-
 function showDriveStatus(msg) {
   const el = document.getElementById('driveStatus');
   if (el) el.textContent = msg;
 }
 
-// ─────────────────────────────────────────
-// 💾 LOCAL STORAGE + DRIVE 자동 저장
-// ─────────────────────────────────────────
+
+// LOCAL STORAGE 자동 저장
 const STORAGE_KEY = 'saekim_portfolio';
+
 
 async function saveToStorage() {
   try {
@@ -610,23 +570,18 @@ async function saveToStorage() {
     const json = JSON.stringify(data);
     localStorage.setItem(STORAGE_KEY, json);
     if (googleAccessToken && driveFolderId) {
-      await saveToDrive('portfolio_data.json', json);
+      saveToDrive('portfolio_data.json', json).catch(() => {});
     }
   } catch(e) {
     console.warn('저장 오류:', e);
-    if (e.name === 'QuotaExceededError') {
-      alert('⚠️ 로컬 저장 공간 부족. 구글 드라이브 연결을 권장합니다.');
-    }
+    if (e.name === 'QuotaExceededError') alert('⚠️ 로컬 저장 공간 부족.');
   }
 }
 
+
 async function loadFromStorage() {
   try {
-    let raw = null;
-    if (googleAccessToken && driveFolderId) {
-      raw = await loadFromDrive('portfolio_data.json');
-    }
-    if (!raw) raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     const data = JSON.parse(raw);
     if (data.projects) projects = data.projects;
@@ -649,6 +604,7 @@ async function loadFromStorage() {
   }
 }
 
+
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -658,13 +614,9 @@ function fileToBase64(file) {
   });
 }
 
+
 async function processImage(file, filenameHint) {
-  const base64 = await fileToBase64(file);
-  if (googleAccessToken && driveFolderId) {
-    const driveUrl = await uploadToDrive(base64, filenameHint || file.name);
-    if (driveUrl) return driveUrl;
-  }
-  return base64;
+  return await fileToBase64(file);
 }
 
 // ─────────────────────────────────────────
