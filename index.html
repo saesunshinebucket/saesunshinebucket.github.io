@@ -207,6 +207,8 @@ input[type=file]{display:none;}
 @media(max-width:960px){section,#connect{padding:72px 28px;}.proj-grid{grid-template-columns:1fr 1fr;}.about-bio{grid-template-columns:1fr;}.film-row{grid-template-columns:52px 1fr;}.film-role{display:none;}footer{flex-direction:column;gap:16px;text-align:center;}.modal{padding:60px 24px 80px;}}
 @media(max-width:600px){nav{gap:22px;}.hero-title{letter-spacing:-2px;}.proj-grid,.sb-strip{grid-template-columns:1fr;}section,#connect{padding:56px 18px;}}
 </style>
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
 </head>
 <body>
 
@@ -379,13 +381,22 @@ input[type=file]{display:none;}
 <!-- MANAGE BUTTON -->
 <button class="manage-btn" id="manageBtn" onclick="toggleEdit()">⚙ MANAGE</button>
 
+<!-- DRIVE STATUS BAR -->
+<div id="driveBar" style="display:none;position:fixed;bottom:68px;right:24px;z-index:600;background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:8px 14px;font-size:11px;letter-spacing:1px;color:var(--muted);backdrop-filter:blur(8px);display:flex;align-items:center;gap:8px;">
+  <span id="driveStatus">☁️ 연결 안됨</span>
+  <button onclick="signInGoogle()" style="padding:4px 10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px;">연결</button>
+  <button onclick="signOutGoogle()" style="padding:4px 10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px;">해제</button>
+</div>
+
 <!-- FILE INPUTS -->
 <input type="file" id="projThumbInput" accept="image/*">
 <input type="file" id="projGalleryInput" accept="image/*" multiple>
 <input type="file" id="sbPanelInput" accept="image/*" multiple>
 
 <script>
-// ── STATE ──
+// ─────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────
 let editMode = false;
 let projects = { concept:[], pro:[], personal:[] };
 let sbPanels = { stripA:[] };
@@ -394,38 +405,298 @@ let currentProjId = null;
 let currentSbStrip = null;
 let projCounter = 0;
 
-// ── NAV ──
+// ─────────────────────────────────────────
+// ☁️ GOOGLE DRIVE 연동
+// ─────────────────────────────────────────
+const GOOGLE_CLIENT_ID = '173414849611-f2vibs4ljjjqolrdhu5d4j95tb3dao8o.apps.googleusercontent.com';
+const GOOGLE_API_KEY   = 'AIzaSyB87gMyxGt5KxoL0HXFloCoeKK_9uzp20Y';
+const DRIVE_FOLDER_NAME = 'SaeKim Portfolio';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+let googleAccessToken = null;
+let driveFolderId = null;
+let tokenClient = null;
+let gapiReady = false;
+let gsiReady = false;
+
+function initGoogleApi() {
+  if (typeof gapi === 'undefined' || typeof google === 'undefined') {
+    setTimeout(initGoogleApi, 500);
+    return;
+  }
+  gapi.load('client:picker', async () => {
+    await gapi.client.init({
+      apiKey: GOOGLE_API_KEY,
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+    });
+    gapiReady = true;
+    checkGoogleReady();
+  });
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: SCOPES,
+    callback: async (resp) => {
+      if (resp.error) { showDriveStatus('⚠️ 로그인 실패'); return; }
+      googleAccessToken = resp.access_token;
+      showDriveStatus('☁️ 연결 중...');
+      await getOrCreateDriveFolder();
+      loadFromStorage();
+      showDriveStatus('☁️ 드라이브 연결됨');
+    }
+  });
+  gsiReady = true;
+  checkGoogleReady();
+}
+
+function checkGoogleReady() {
+  if (gapiReady && gsiReady) {
+    const savedToken = localStorage.getItem('gd_token');
+    if (savedToken) {
+      googleAccessToken = savedToken;
+      getOrCreateDriveFolder().then(() => {
+        loadFromStorage();
+        showDriveStatus('☁️ 드라이브 연결됨');
+      }).catch(() => { googleAccessToken = null; loadFromStorage(); });
+    } else {
+      loadFromStorage();
+    }
+  }
+}
+
+function signInGoogle() {
+  if (!tokenClient) { alert('Google API 로딩 중입니다. 잠시 후 다시 시도하세요.'); return; }
+  tokenClient.requestAccessToken({ prompt: '' });
+}
+
+function signOutGoogle() {
+  if (googleAccessToken) {
+    google.accounts.oauth2.revoke(googleAccessToken, () => {});
+    googleAccessToken = null;
+    driveFolderId = null;
+    localStorage.removeItem('gd_token');
+    showDriveStatus('☁️ 연결 안됨');
+  }
+}
+
+async function getOrCreateDriveFolder() {
+  if (!googleAccessToken) return;
+  try {
+    const res = await gapi.client.drive.files.list({
+      q: `name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+      fields: 'files(id,name)'
+    });
+    if (res.result.files.length > 0) {
+      driveFolderId = res.result.files[0].id;
+    } else {
+      const folder = await gapi.client.drive.files.create({
+        resource: { name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' },
+        fields: 'id'
+      });
+      driveFolderId = folder.result.id;
+    }
+    localStorage.setItem('gd_token', googleAccessToken);
+  } catch(e) {
+    console.warn('Drive folder error:', e);
+  }
+}
+
+async function uploadToDrive(base64Data, filename) {
+  if (!googleAccessToken || !driveFolderId) return null;
+  try {
+    const [meta, data] = base64Data.split(',');
+    const mime = meta.match(/:(.*?);/)[1];
+    const binary = atob(data);
+    const arr = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+    const blob = new Blob([arr], { type: mime });
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify({
+      name: filename, parents: [driveFolderId]
+    })], { type: 'application/json' }));
+    form.append('file', blob);
+    const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${googleAccessToken}` },
+      body: form
+    });
+    const result = await resp.json();
+    await fetch(`https://www.googleapis.com/drive/v3/files/${result.id}/permissions`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'reader', type: 'anyone' })
+    });
+    return `https://drive.google.com/uc?export=view&id=${result.id}`;
+  } catch(e) {
+    console.warn('Drive upload error:', e);
+    return null;
+  }
+}
+
+async function saveToDrive(filename, jsonData) {
+  if (!googleAccessToken || !driveFolderId) return null;
+  try {
+    const existing = await gapi.client.drive.files.list({
+      q: `name='${filename}' and '${driveFolderId}' in parents and trashed=false`,
+      fields: 'files(id)'
+    });
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify({
+      name: filename, parents: existing.result.files.length ? undefined : [driveFolderId]
+    })], { type: 'application/json' }));
+    form.append('file', blob);
+    let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    let method = 'POST';
+    if (existing.result.files.length > 0) {
+      url = `https://www.googleapis.com/upload/drive/v3/files/${existing.result.files[0].id}?uploadType=multipart`;
+      method = 'PATCH';
+    }
+    await fetch(url, { method, headers: { Authorization: `Bearer ${googleAccessToken}` }, body: form });
+  } catch(e) {
+    console.warn('Drive save error:', e);
+  }
+}
+
+async function loadFromDrive(filename) {
+  if (!googleAccessToken || !driveFolderId) return null;
+  try {
+    const res = await gapi.client.drive.files.list({
+      q: `name='${filename}' and '${driveFolderId}' in parents and trashed=false`,
+      fields: 'files(id)'
+    });
+    if (!res.result.files.length) return null;
+    const fileId = res.result.files[0].id;
+    const data = await gapi.client.drive.files.get({ fileId, alt: 'media' });
+    return data.body;
+  } catch(e) {
+    console.warn('Drive load error:', e);
+    return null;
+  }
+}
+
+function showDriveStatus(msg) {
+  const el = document.getElementById('driveStatus');
+  if (el) el.textContent = msg;
+}
+
+// ─────────────────────────────────────────
+// 💾 LOCAL STORAGE + DRIVE 자동 저장
+// ─────────────────────────────────────────
+const STORAGE_KEY = 'saekim_portfolio';
+
+async function saveToStorage() {
+  try {
+    const heroSrc = document.getElementById('heroImg').src || '';
+    const data = { projects, sbPanels, projCounter, heroSrc: heroSrc.startsWith('data:') ? heroSrc : '' };
+    const json = JSON.stringify(data);
+    localStorage.setItem(STORAGE_KEY, json);
+    if (googleAccessToken && driveFolderId) {
+      await saveToDrive('portfolio_data.json', json);
+    }
+  } catch(e) {
+    console.warn('저장 오류:', e);
+    if (e.name === 'QuotaExceededError') {
+      alert('⚠️ 로컬 저장 공간 부족. 구글 드라이브 연결을 권장합니다.');
+    }
+  }
+}
+
+async function loadFromStorage() {
+  try {
+    let raw = null;
+    if (googleAccessToken && driveFolderId) {
+      raw = await loadFromDrive('portfolio_data.json');
+    }
+    if (!raw) raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.projects) projects = data.projects;
+    if (data.sbPanels) sbPanels = data.sbPanels;
+    if (data.projCounter) projCounter = data.projCounter;
+    if (data.heroSrc && data.heroSrc.startsWith('data:')) {
+      const img = document.getElementById('heroImg');
+      const ph  = document.getElementById('heroPh');
+      img.src = data.heroSrc;
+      img.style.display = 'block';
+      ph.style.display  = 'none';
+    }
+    renderGrid('concept');
+    renderGrid('pro');
+    renderGrid('personal');
+    renderStrip('stripA');
+    updateCount();
+  } catch(e) {
+    console.warn('불러오기 실패:', e);
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function processImage(file, filenameHint) {
+  const base64 = await fileToBase64(file);
+  if (googleAccessToken && driveFolderId) {
+    const driveUrl = await uploadToDrive(base64, filenameHint || file.name);
+    if (driveUrl) return driveUrl;
+  }
+  return base64;
+}
+
+// ─────────────────────────────────────────
+// NAV
+// ─────────────────────────────────────────
 const navEl = document.getElementById('nav');
 window.addEventListener('scroll',()=>{
-  navEl.classList.toggle('scrolled', scrollY > 50);
+  navEl.classList.toggle('scrolled', scrollY > 90);
   let cur='';
-  document.querySelectorAll('section[id]').forEach(s=>{if(scrollY>=s.offsetTop-130)cur=s.id;});
+  document.querySelectorAll('section[id]').forEach(s=>{if((scrollY-s.offsetTop-130)>=0)cur=s.id;});
   document.querySelectorAll('nav a').forEach(a=>{a.classList.toggle('active',a.getAttribute('href')==='#'+cur);});
 },{passive:true});
 
-// ── HERO ──
-document.getElementById('heroFileInput').addEventListener('change',e=>{
+// ─────────────────────────────────────────
+// HERO
+// ─────────────────────────────────────────
+document.getElementById('heroFileInput').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f||!editMode) return;
-  const url=URL.createObjectURL(f);
+  const src = await processImage(f, 'hero.jpg');
   const img=document.getElementById('heroImg');
-  img.src=url; img.style.display='block';
+  img.src=src; img.style.display='block';
   document.getElementById('heroPh').style.display='none';
   e.target.value='';
-});
-document.getElementById('heroBg').addEventListener('dragover',e=>e.preventDefault());
-document.getElementById('heroBg').addEventListener('drop',e=>{
-  e.preventDefault();
-  const f=e.dataTransfer.files[0];
-  if(!f||!f.type.startsWith('image/')) return;
-  const url=URL.createObjectURL(f);
-  document.getElementById('heroImg').src=url;
-  document.getElementById('heroImg').style.display='block';
-  document.getElementById('heroPh').style.display='none';
+  saveToStorage();
 });
 
-// ── EDIT MODE ──
-// ── PASSWORD ──
-const PW = '1223'; // ← 여기서 비밀번호 변경
+document.getElementById('heroBg').addEventListener('dragover',e=>{
+  e.preventDefault();
+  if(!editMode) return;
+  document.getElementById('heroBg').style.outline='2px dashed var(--paper)';
+});
+document.getElementById('heroBg').addEventListener('dragleave',()=>{
+  document.getElementById('heroBg').style.outline='';
+});
+document.getElementById('heroBg').addEventListener('drop', async e=>{
+  e.preventDefault();
+  document.getElementById('heroBg').style.outline='';
+  if(!editMode) return;
+  const f=e.dataTransfer.files[0];
+  if(!f||!f.type.startsWith('image/')) return;
+  const src = await processImage(f, 'hero.jpg');
+  document.getElementById('heroImg').src=src;
+  document.getElementById('heroImg').style.display='block';
+  document.getElementById('heroPh').style.display='none';
+  saveToStorage();
+});
+
+// ─────────────────────────────────────────
+// EDIT MODE
+// ─────────────────────────────────────────
+const PW = '1223';
 
 function toggleEdit(){
   if(editMode){ exitEdit(); return; }
@@ -460,6 +731,8 @@ function enterEdit(){
   const btn=document.getElementById('manageBtn');
   btn.textContent='✓ DONE';
   btn.classList.add('on');
+  const db=document.getElementById('driveBar');
+  if(db) db.style.display='flex';
 }
 function exitEdit(){
   editMode=false;
@@ -467,34 +740,39 @@ function exitEdit(){
   const btn=document.getElementById('manageBtn');
   btn.textContent='⚙ MANAGE';
   btn.classList.remove('on');
+  const db=document.getElementById('driveBar');
+  if(db) db.style.display='none';
 }
 
-// ── ADD PROJECT (썸네일 선택 → 카드 생성) ──
+// ─────────────────────────────────────────
+// ADD PROJECT
+// ─────────────────────────────────────────
 function addProject(key){
   currentProjKey=key;
   document.getElementById('projThumbInput').click();
 }
-document.getElementById('projThumbInput').addEventListener('change',e=>{
+document.getElementById('projThumbInput').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f||!currentProjKey) return;
-  const url=URL.createObjectURL(f);
-  const id='proj_'+(++projCounter);
-  const proj={id, key:currentProjKey, thumb:url, name:'Project '+projCounter, tag:tagFor(currentProjKey), desc:'', images:[]};
+  const src = await processImage(f, `thumb_${++projCounter}.jpg`);
+  const id='proj_'+projCounter;
+  const proj={id, key:currentProjKey, thumb:src, name:'Project '+projCounter, tag:tagFor(currentProjKey), desc:'', images:[]};
   projects[currentProjKey].push(proj);
   renderGrid(currentProjKey);
   updateCount();
+  saveToStorage();
   e.target.value='';
 });
 
 function tagFor(k){return k==='concept'?'CONCEPT':k==='pro'?'UNRELEASED':'PERSONAL';}
 
-// ── RENDER GRID ──
+// ─────────────────────────────────────────
+// RENDER GRID
+// ─────────────────────────────────────────
 function renderGrid(key){
   const gridId={concept:'gridConcept',pro:'gridPro',personal:'gridPersonal'}[key];
   const grid=document.getElementById(gridId);
   const addBtn=grid.querySelector('.proj-add-btn');
-  // remove old cards
   grid.querySelectorAll('.proj-card').forEach(c=>c.remove());
-  // insert before add btn
   projects[key].forEach(proj=>{
     const card=document.createElement('div');
     card.className='proj-card';
@@ -512,7 +790,9 @@ function renderGrid(key){
   });
 }
 
-// ── OPEN PROJECT MODAL ──
+// ─────────────────────────────────────────
+// OPEN PROJECT MODAL
+// ─────────────────────────────────────────
 function openModal(projId, key){
   const proj=projects[key].find(p=>p.id===projId);
   if(!proj) return;
@@ -557,7 +837,6 @@ function renderModalGallery(proj){
       <button class="modal-img-del" onclick="deleteModalImg(${i})">×</button>`;
     gallery.appendChild(wrap);
   });
-  // add button
   const addBtn=document.createElement('button');
   addBtn.className='modal-add-img';
   addBtn.textContent='+ ADD IMAGE';
@@ -566,19 +845,19 @@ function renderModalGallery(proj){
 }
 
 function updateProjMeta(){
-  const proj=getProj();
-  if(!proj) return;
+  const proj=getProj(); if(!proj) return;
   proj.name=document.getElementById('editName').value||proj.name;
   proj.desc=document.getElementById('editDesc').value||'';
-  // update card
   renderGrid(currentProjKey);
+  saveToStorage();
 }
 
 function deleteProject(){
-  if(!confirm('이 프로젝트를 삭제할까요?')) return;
+  if(!confirm('이 프로젝트를 삭제하시겠습니까?')) return;
   projects[currentProjKey]=projects[currentProjKey].filter(p=>p.id!==currentProjId);
   renderGrid(currentProjKey);
   updateCount();
+  saveToStorage();
   closeModal();
 }
 
@@ -587,21 +866,24 @@ function deleteModalImg(idx){
   proj.images.splice(idx,1);
   renderModalGallery(proj);
   renderGrid(currentProjKey);
+  saveToStorage();
 }
 
 function getProj(){
   return currentProjKey&&currentProjId?projects[currentProjKey].find(p=>p.id===currentProjId):null;
 }
 
-// gallery image upload
-document.getElementById('projGalleryInput').addEventListener('change',e=>{
+document.getElementById('projGalleryInput').addEventListener('change', async e=>{
   const proj=getProj(); if(!proj) return;
-  Array.from(e.target.files).forEach(f=>{
-    proj.images.push(URL.createObjectURL(f));
-  });
+  let idx=0;
+  for(const f of e.target.files){
+    const src = await processImage(f, `gallery_${proj.id}_${idx++}.jpg`);
+    proj.images.push(src);
+  }
   renderModalGallery(proj);
   renderGrid(currentProjKey);
   updateCount();
+  saveToStorage();
   e.target.value='';
 });
 
@@ -610,17 +892,22 @@ function closeModal(){
   document.body.style.overflow='';
 }
 
-// ── STORYBOARD ──
+// ─────────────────────────────────────────
+// STORYBOARD
+// ─────────────────────────────────────────
 function addSbPanel(stripId){
   currentSbStrip=stripId;
   document.getElementById('sbPanelInput').click();
 }
-document.getElementById('sbPanelInput').addEventListener('change',e=>{
+document.getElementById('sbPanelInput').addEventListener('change', async e=>{
   if(!currentSbStrip) return;
-  Array.from(e.target.files).forEach(f=>{
-    sbPanels[currentSbStrip].push({src:URL.createObjectURL(f)});
-  });
+  let idx=0;
+  for(const f of e.target.files){
+    const src = await processImage(f, `sb_${currentSbStrip}_${idx++}.jpg`);
+    sbPanels[currentSbStrip].push({src});
+  }
   renderStrip(currentSbStrip);
+  saveToStorage();
   e.target.value='';
 });
 
@@ -639,121 +926,68 @@ function renderStrip(stripId){
   });
 }
 
-// ── COUNT ──
+// ─────────────────────────────────────────
+// DRAG & DROP
+// ─────────────────────────────────────────
+function dzDropSb(e, stripId){
+  e.preventDefault();
+  const el=e.currentTarget;
+  el.classList.remove('drag-over');
+  if(!editMode) return;
+  const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  if(!files.length) return;
+  (async()=>{
+    let idx=0;
+    for(const f of files){
+      const src = await processImage(f, `sb_${stripId}_${idx++}.jpg`);
+      sbPanels[stripId].push({src});
+    }
+    renderStrip(stripId);
+    saveToStorage();
+  })();
+}
+
+function dzDropModal(e){
+  e.preventDefault();
+  const gallery=document.getElementById('modalGallery');
+  if(gallery) gallery.classList.remove('drag-over');
+  if(!editMode) return;
+  const proj=getProj(); if(!proj) return;
+  const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  if(!files.length) return;
+  (async()=>{
+    let idx=0;
+    for(const f of files){
+      const src = await processImage(f, `gallery_${proj.id}_${idx++}.jpg`);
+      proj.images.push(src);
+    }
+    renderModalGallery(proj);
+    renderGrid(currentProjKey);
+    saveToStorage();
+  })();
+}
+
+function dzOver(e,el){ e.preventDefault(); el.classList.add('drag-over'); }
+function dzLeave(el){ el.classList.remove('drag-over'); }
+
+// ─────────────────────────────────────────
+// COUNT
+// ─────────────────────────────────────────
 function updateCount(){
   const total=projects.concept.length+projects.pro.length+projects.personal.length;
   document.getElementById('worksCount').textContent=total+' projects';
 }
 
-// ── LIGHTBOX ──
+// ─────────────────────────────────────────
+// LIGHTBOX
+// ─────────────────────────────────────────
 function openLb(src){document.getElementById('lbImg').src=src;document.getElementById('lb').classList.add('open');}
 function closeLb(){document.getElementById('lb').classList.remove('open');}
-document.getElementById('lb').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLb();});
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeLb();closeModal();}
-});
 
-// ── UNRELEASED WORKS LOCK ──
-const UNREL_PW = 'Saesunshine2026';
-let unrelUnlocked = false;
-
-function openUnrelModal(){
-  document.getElementById('unrelPwInput').value='';
-  document.getElementById('unrelPwError').textContent='';
-  document.getElementById('unrelPwInput').classList.remove('error');
-  document.getElementById('unrelModalBg').classList.add('open');
-  setTimeout(()=>document.getElementById('unrelPwInput').focus(),100);
-}
-function closeUnrelModal(){
-  document.getElementById('unrelModalBg').classList.remove('open');
-}
-function checkUnrelPw(){
-  const val=document.getElementById('unrelPwInput').value;
-  if(val===UNREL_PW){
-    closeUnrelModal();
-    unrelUnlocked=true;
-    document.getElementById('unrelOverlay').style.display='none';
-  } else {
-    const inp=document.getElementById('unrelPwInput');
-    inp.classList.add('error');
-    document.getElementById('unrelPwError').textContent='비밀번호가 틀렸습니다.';
-    setTimeout(()=>inp.classList.remove('error'),400);
-    inp.value='';
-  }
-}
-
-
-// ── DRAG & DROP ──
-function dzOver(e, el){
-  e.preventDefault();
-  if(!editMode) return;
-  el.classList.add('drag-over');
-}
-function dzLeave(el){ el.classList.remove('drag-over'); }
-
-function dzDrop(e, key){
-  e.preventDefault();
-  const el = e.currentTarget;
-  el.classList.remove('drag-over');
-  if(!editMode) return;
-  const files = Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
-  if(!files.length) return;
-  files.forEach(f=>{
-    const url = URL.createObjectURL(f);
-    const id = 'proj_'+(++projCounter);
-    const name = f.name.replace(/\.[^/.]+$/,'');
-    const proj = {id, key, thumb:url, name, tag:tagFor(key), desc:'', images:[]};
-    projects[key].push(proj);
-  });
-  renderGrid(key);
-  updateCount();
-}
-
-function dzDropSb(e, stripId){
-  e.preventDefault();
-  const el = e.currentTarget;
-  el.classList.remove('drag-over');
-  if(!editMode) return;
-  const files = Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
-  if(!files.length) return;
-  files.forEach(f=>{ sbPanels[stripId].push({src:URL.createObjectURL(f)}); });
-  renderStrip(stripId);
-}
-
-function dzDropModal(e){
-  e.preventDefault();
-  const gallery = document.getElementById('modalGallery');
-  if(gallery) gallery.classList.remove('drag-over');
-  if(!editMode) return;
-  const proj = getProj(); if(!proj) return;
-  const files = Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
-  if(!files.length) return;
-  files.forEach(f=>{ proj.images.push(URL.createObjectURL(f)); });
-  renderModalGallery(proj);
-  renderGrid(currentProjKey);
-}
-
-// hero drag-drop (MANAGE 모드에서만)
-document.getElementById('heroBg').addEventListener('dragover', e=>{
-  e.preventDefault();
-  if(!editMode) return;
-  document.getElementById('heroBg').style.outline='2px dashed var(--paper)';
-});
-document.getElementById('heroBg').addEventListener('dragleave', ()=>{
-  document.getElementById('heroBg').style.outline='';
-});
-document.getElementById('heroBg').addEventListener('drop', e=>{
-  e.preventDefault();
-  document.getElementById('heroBg').style.outline='';
-  if(!editMode) return;
-  const f = e.dataTransfer.files[0];
-  if(!f||!f.type.startsWith('image/')) return;
-  const url = URL.createObjectURL(f);
-  document.getElementById('heroImg').src=url;
-  document.getElementById('heroImg').style.display='block';
-  document.getElementById('heroPh').style.display='none';
-});
-
+// ─────────────────────────────────────────
+// 🚀 초기화
+// ─────────────────────────────────────────
+window.addEventListener('load', initGoogleApi);
 </script>
 
 <!-- PASSWORD MODAL -->
