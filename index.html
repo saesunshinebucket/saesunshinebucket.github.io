@@ -349,7 +349,7 @@ input[type=file]{display:none;}
     <textarea placeholder="Tell me about your project… / 프로젝트를 알려주세요"></textarea>
   </div>
   <button class="contact-btn" onclick="alert('메시지 전송!\nMessage sent — thank you!')">SEND</button>
-  <p class="contact-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8cffede9fff9e2ffe4e5e2e9eef9efe7e9f8ccebe1ede5e0a2efe3e1">[email&#160;protected]</a> &nbsp;·&nbsp; Seoul, KR</p>
+  <p class="contact-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="394a585c4a4c574a5150575c5b4c5a525c4d795e54585055175a5654">[email&#160;protected]</a> &nbsp;·&nbsp; Seoul, KR</p>
 </section>
 
 <!-- FOOTER -->
@@ -398,8 +398,122 @@ let currentProjId = null;
 let currentSbStrip = null;
 let projCounter = 0;
 
+// ── GitHub 이미지 저장소 ──────────────────────────────────
+const GH_OWNER   = 'saesunshinebucket';
+const GH_REPO    = 'saesunshinebucket.github.io';
+const GH_BRANCH  = 'main';
+const GH_IMG_DIR = 'images';
+const LS_TOKEN_KEY = 'sk_gh_token';
+const LS_META_KEY  = 'sk_portfolio_meta';
 
+function ghToken() { return localStorage.getItem(LS_TOKEN_KEY) || ''; }
+function saveGhToken(t) {
+  if (t) localStorage.setItem(LS_TOKEN_KEY, t.trim());
+  else localStorage.removeItem(LS_TOKEN_KEY);
+}
 
+function fileToB64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload  = e => res(e.target.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+function tempUrl(file) { return URL.createObjectURL(file); }
+
+async function uploadToGitHub(file, prefix) {
+  const token = ghToken();
+  if (!token) { alert('⚙ Manage 모드에서 GitHub Token을 먼저 입력해주세요.'); throw new Error('no token'); }
+  const ext  = (file.name||'img').split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+  const name = prefix + '_' + Date.now() + '.' + ext;
+  const path = GH_IMG_DIR + '/' + name;
+  const b64  = await fileToB64(file);
+  let sha = '';
+  try {
+    const chk = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
+      { headers: { Authorization: 'token '+token } });
+    if (chk.ok) { const j = await chk.json(); sha = j.sha||''; }
+  } catch(e) {}
+  const body = { message: 'Add portfolio image: '+name, content: b64, branch: GH_BRANCH };
+  if (sha) body.sha = sha;
+  const res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
+    { method:'PUT', headers:{ Authorization:'token '+token,'Content-Type':'application/json' }, body:JSON.stringify(body) });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message||'upload failed'); }
+  return 'https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/'+path;
+}
+
+async function deleteFromGitHub(rawUrl) {
+  const token = ghToken(); if (!token) return;
+  const m = rawUrl.match(/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/(.+)/);
+  if (!m) return;
+  const path = m[1];
+  try {
+    const chk = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
+      { headers: { Authorization: 'token '+token } });
+    if (!chk.ok) return;
+    const { sha } = await chk.json();
+    await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
+      { method:'DELETE', headers:{ Authorization:'token '+token,'Content-Type':'application/json' },
+        body: JSON.stringify({ message:'Remove portfolio image', sha, branch:GH_BRANCH }) });
+  } catch(e) { console.warn('GitHub delete failed:',e); }
+}
+
+let _stTimer = null;
+function showStatus(msg, ms) {
+  let el = document.getElementById('_st');
+  if (!el) {
+    el = document.createElement('div'); el.id = '_st';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:900;background:var(--paper);color:var(--bg);padding:10px 28px;border-radius:2px;font-size:12px;letter-spacing:1px;pointer-events:none;transition:opacity .3s;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg; el.style.opacity = '1';
+  if (_stTimer) clearTimeout(_stTimer);
+  if (ms) _stTimer = setTimeout(()=>{ el.style.opacity='0'; }, ms);
+}
+
+// ── 저장 / 불러오기 ───────────────────────────────────────
+async function saveToStorage() {
+  try {
+    const heroSrc = document.getElementById('heroImg').src || '';
+    const heroRef = heroSrc.startsWith('http') ? heroSrc : '';
+    const saveProjects = {};
+    for (const k of Object.keys(projects)) {
+      saveProjects[k] = projects[k].map(p => ({
+        ...p,
+        thumb:  (p.thumb||'').startsWith('http') ? p.thumb : '',
+        images: (p.images||[]).filter(s => s && s.startsWith('http'))
+      }));
+    }
+    const saveSb = {};
+    for (const k of Object.keys(sbPanels)) {
+      saveSb[k] = sbPanels[k].filter(p => p.src && p.src.startsWith('http'));
+    }
+    localStorage.setItem(LS_META_KEY, JSON.stringify({ projects:saveProjects, sbPanels:saveSb, projCounter, heroRef }));
+  } catch(e) { console.warn('저장 오류:',e); }
+}
+
+function applyLoadedData(data) {
+  if (data.projCounter) projCounter = data.projCounter;
+  if (data.projects)    projects    = data.projects;
+  if (data.sbPanels)    sbPanels    = data.sbPanels;
+  const heroRef = data.heroRef || data.heroSrc || '';
+  if (heroRef) {
+    const img = document.getElementById('heroImg');
+    const ph  = document.getElementById('heroPh');
+    img.src = heroRef; img.style.display='block'; ph.style.display='none';
+  }
+  renderGrid('concept'); renderGrid('pro'); renderGrid('personal');
+  renderStrip('stripA'); updateCount();
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(LS_META_KEY) || localStorage.getItem('saekim_portfolio');
+    if (raw) applyLoadedData(JSON.parse(raw));
+  } catch(e) { console.warn('불러오기 실패:',e); }
+}
 
 
 
@@ -419,12 +533,13 @@ window.addEventListener('scroll',()=>{
 // ─────────────────────────────────────────
 document.getElementById('heroFileInput').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f||!editMode) return;
-  const url = await storeImageIDB(f, 'hero');
-  const img=document.getElementById('heroImg');
-  img.src=url; img.style.display='block';
-  document.getElementById('heroPh').style.display='none';
   e.target.value='';
-  saveToStorage();
+  const img=document.getElementById('heroImg');
+  img.src=tempUrl(f); img.style.display='block';
+  document.getElementById('heroPh').style.display='none';
+  showStatus('⬆️ 업로드 중…');
+  try { img.src=await uploadToGitHub(f,'hero'); saveToStorage(); showStatus('✅ 완료!',2000); }
+  catch(err){ showStatus('❌ '+err.message,4000); }
 });
 
 document.getElementById('heroBg').addEventListener('dragover', e=>{
@@ -441,11 +556,12 @@ document.getElementById('heroBg').addEventListener('drop', async e=>{
   if(!editMode) return;
   const f=e.dataTransfer.files[0];
   if(!f||!f.type.startsWith('image/')) return;
-  const url = await storeImageIDB(f, 'hero');
   const img=document.getElementById('heroImg');
-  img.src=url; img.style.display='block';
+  img.src=tempUrl(f); img.style.display='block';
   document.getElementById('heroPh').style.display='none';
-  saveToStorage();
+  showStatus('⬆️ 업로드 중…');
+  try { img.src=await uploadToGitHub(f,'hero'); saveToStorage(); showStatus('✅ 완료!',2000); }
+  catch(err){ showStatus('❌ '+err.message,4000); }
 });
 
 
@@ -485,17 +601,25 @@ function enterEdit(){
   editMode=true;
   document.body.classList.add('edit-on');
   const btn=document.getElementById('manageBtn');
-  btn.textContent='✓ DONE';
-  btn.classList.add('on');
-
+  btn.textContent='✓ DONE'; btn.classList.add('on');
+  let bar=document.getElementById('_ghBar');
+  if(!bar){
+    bar=document.createElement('div'); bar.id='_ghBar';
+    bar.style.cssText='position:fixed;bottom:68px;right:24px;z-index:600;background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:10px 14px;display:flex;align-items:center;gap:8px;backdrop-filter:blur(8px);';
+    bar.innerHTML='<span style="font-size:11px;letter-spacing:1px;color:var(--muted);">GitHub Token</span>'
+      +'<input id="_ghTok" type="password" placeholder="ghp_..." style="width:180px;padding:6px 10px;background:var(--bg);border:1px solid var(--line);border-radius:2px;font-size:12px;color:var(--paper);outline:none;">'
+      +'<button onclick="saveGhToken(document.getElementById(\'_ghTok\').value);this.textContent=\'✓\';" style="padding:6px 12px;background:var(--paper);color:var(--bg);border:none;border-radius:2px;font-size:11px;cursor:pointer;">저장</button>';
+    document.body.appendChild(bar);
+  }
+  document.getElementById('_ghTok').value=ghToken();
+  bar.style.display='flex';
 }
 function exitEdit(){
   editMode=false;
   document.body.classList.remove('edit-on');
   const btn=document.getElementById('manageBtn');
-  btn.textContent='⚙ MANAGE';
-  btn.classList.remove('on');
-
+  btn.textContent='⚙ MANAGE'; btn.classList.remove('on');
+  const bar=document.getElementById('_ghBar'); if(bar) bar.style.display='none';
 }
 
 
@@ -509,15 +633,13 @@ function addProject(key){
 }
 document.getElementById('projThumbInput').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f||!currentProjKey) return;
-  const url = await storeImageIDB(f, 'thumb');
-  projCounter++;
-  const id='proj_'+projCounter;
-  const proj={id, key:currentProjKey, thumb:url, name:'Project '+projCounter, tag:tagFor(currentProjKey), desc:'', images:[]};
-  projects[currentProjKey].push(proj);
-  renderGrid(currentProjKey);
-  updateCount();
-  saveToStorage();
   e.target.value='';
+  projCounter++; const id='proj_'+projCounter;
+  const proj={id,key:currentProjKey,thumb:tempUrl(f),name:'Project '+projCounter,tag:tagFor(currentProjKey),desc:'',images:[]};
+  projects[currentProjKey].push(proj); renderGrid(currentProjKey); updateCount();
+  showStatus('⬆️ 업로드 중…');
+  try { proj.thumb=await uploadToGitHub(f,'thumb_'+id); renderGrid(currentProjKey); saveToStorage(); showStatus('✅ 완료!',2000); }
+  catch(err){ showStatus('❌ '+err.message,4000); }
 });
 
 function tagFor(k){return k==='concept'?'CONCEPT':k==='pro'?'UNRELEASED':'PERSONAL';}
@@ -609,7 +731,7 @@ function updateProjMeta(){
 function deleteProject(){
   if(!confirm('이 프로젝트를 삭제하시겠습니까?')) return;
   const proj=getProj();
-  if(proj){ [proj.thumb,...(proj.images||[])].forEach(url=>{const k=_idbMap[url];if(k){idbDel('images',k);delete _idbMap[url];}}); }
+  if(proj){ [proj.thumb,...(proj.images||[])].forEach(url=>{ if(url&&url.includes('raw.githubusercontent.com')) deleteFromGitHub(url); }); }
   projects[currentProjKey]=projects[currentProjKey].filter(p=>p.id!==currentProjId);
   renderGrid(currentProjKey);
   updateCount();
@@ -619,7 +741,7 @@ function deleteProject(){
 
 function deleteModalImg(idx){
   const proj=getProj(); if(!proj) return;
-  const url=proj.images[idx]; const k=_idbMap[url]; if(k){idbDel('images',k);delete _idbMap[url];}
+  const url=proj.images[idx]; if(url&&url.includes('raw.githubusercontent.com')) deleteFromGitHub(url);
   proj.images.splice(idx,1);
   renderModalGallery(proj);
   renderGrid(currentProjKey);
@@ -632,15 +754,15 @@ function getProj(){
 
 document.getElementById('projGalleryInput').addEventListener('change', async e=>{
   const proj=getProj(); if(!proj) return;
-  for(const f of e.target.files){
-    const url = await storeImageIDB(f, 'gallery');
-    proj.images.push(url);
-    renderModalGallery(proj);
-    renderGrid(currentProjKey);
+  const files=[...e.target.files]; e.target.value='';
+  for(const f of files){
+    const idx=proj.images.push(tempUrl(f))-1;
+    renderModalGallery(proj); renderGrid(currentProjKey);
+    showStatus('⬆️ 업로드 중…');
+    try { proj.images[idx]=await uploadToGitHub(f,'gallery_'+proj.id+'_'+idx); renderModalGallery(proj); renderGrid(currentProjKey); saveToStorage(); showStatus('✅ 완료!',2000); }
+    catch(err){ showStatus('❌ '+err.message,4000); }
   }
-  updateCount();
-  saveToStorage();
-  e.target.value='';
+  updateCount(); saveToStorage();
 });
 
 function closeModal(){
@@ -657,13 +779,14 @@ function addSbPanel(stripId){
 }
 document.getElementById('sbPanelInput').addEventListener('change', async e=>{
   if(!currentSbStrip) return;
-  for(const f of e.target.files){
-    const url = await storeImageIDB(f, 'sb');
-    sbPanels[currentSbStrip].push({src: url});
+  const files=[...e.target.files]; e.target.value='';
+  for(const f of files){
+    const idx=sbPanels[currentSbStrip].push({src:tempUrl(f)})-1;
     renderStrip(currentSbStrip);
+    showStatus('⬆️ 패널 업로드 중…');
+    try { sbPanels[currentSbStrip][idx].src=await uploadToGitHub(f,'sb_'+currentSbStrip+'_'+idx); renderStrip(currentSbStrip); saveToStorage(); showStatus('✅ 완료!',2000); }
+    catch(err){ showStatus('❌ '+err.message,4000); }
   }
-  saveToStorage();
-  e.target.value='';
 });
 
 function renderStrip(stripId){
@@ -692,11 +815,12 @@ function dzDropSb(e, stripId){
   if(!files.length) return;
   (async()=>{
     for(const f of files){
-      const url = await storeImageIDB(f, 'sb');
-      sbPanels[stripId].push({src: url});
+      const idx=sbPanels[stripId].push({src:tempUrl(f)})-1;
       renderStrip(stripId);
+      showStatus('⬆️ 업로드 중…');
+      try { sbPanels[stripId][idx].src=await uploadToGitHub(f,'sb_'+stripId+'_'+idx); renderStrip(stripId); saveToStorage(); showStatus('✅ 완료!',2000); }
+      catch(err){ showStatus('❌ '+err.message,4000); }
     }
-    saveToStorage();
   })();
 }
 
@@ -709,15 +833,13 @@ function dzDrop(e, key){
   if(!files.length) return;
   (async()=>{
     for(const f of files){
-      const url = await storeImageIDB(f, 'thumb');
-      projCounter++;
-      const id='proj_'+projCounter;
-      const proj={id, key, thumb:url, name:'Project '+projCounter, tag:tagFor(key), desc:'', images:[]};
-      projects[key].push(proj);
-      renderGrid(key);
-      updateCount();
+      projCounter++; const id='proj_'+projCounter;
+      const proj={id,key,thumb:tempUrl(f),name:'Project '+projCounter,tag:tagFor(key),desc:'',images:[]};
+      projects[key].push(proj); renderGrid(key); updateCount();
+      showStatus('⬆️ 업로드 중…');
+      try { proj.thumb=await uploadToGitHub(f,'thumb_'+id); renderGrid(key); saveToStorage(); showStatus('✅ 완료!',2000); }
+      catch(err){ showStatus('❌ '+err.message,4000); }
     }
-    saveToStorage();
   })();
 }
 
@@ -731,12 +853,12 @@ function dzDropModal(e){
   if(!files.length) return;
   (async()=>{
     for(const f of files){
-      const url = await storeImageIDB(f, 'gallery');
-      proj.images.push(url);
-      renderModalGallery(proj);
-      renderGrid(currentProjKey);
+      const idx=proj.images.push(tempUrl(f))-1;
+      renderModalGallery(proj); renderGrid(currentProjKey);
+      showStatus('⬆️ 업로드 중…');
+      try { proj.images[idx]=await uploadToGitHub(f,'gallery_'+proj.id+'_drop_'+idx); renderModalGallery(proj); renderGrid(currentProjKey); saveToStorage(); showStatus('✅ 완료!',2000); }
+      catch(err){ showStatus('❌ '+err.message,4000); }
     }
-    saveToStorage();
   })();
 }
 
@@ -760,7 +882,7 @@ function closeLb(){document.getElementById('lb').classList.remove('open');}
 // ─────────────────────────────────────────
 // 🚀 초기화
 // ─────────────────────────────────────────
-window.addEventListener('load', () => { loadFromStorage(); });
+window.addEventListener('load', loadFromStorage);
 </script>
 
 <!-- PASSWORD MODAL -->
