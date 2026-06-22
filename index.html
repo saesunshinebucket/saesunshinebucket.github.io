@@ -207,8 +207,6 @@ input[type=file]{display:none;}
 @media(max-width:960px){section,#contact{padding:72px 28px;}.proj-grid{grid-template-columns:1fr 1fr;}.about-bio{grid-template-columns:1fr;}.film-row{grid-template-columns:52px 1fr;}.film-role{display:none;}footer{flex-direction:column;gap:16px;text-align:center;}.modal{padding:60px 24px 80px;}}
 @media(max-width:600px){nav{gap:22px;}.hero-title{letter-spacing:-2px;}.proj-grid,.sb-strip{grid-template-columns:1fr;}section,#contact{padding:56px 18px;}}
 </style>
-<script src="https://apis.google.com/js/api.js"></script>
-<script src="https://accounts.google.com/gsi/client"></script>
 </head>
 <body>
 
@@ -262,6 +260,14 @@ input[type=file]{display:none;}
     <div class="proj-grid drop-zone" id="gridConcept" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'concept')">
       <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
       <button class="proj-add-btn" onclick="addProject('concept')">+ ADD PROJECT</button>
+    </div>
+  </div>
+
+  <div class="works-cat">
+    <h2 class="works-cat-title">AI Concept Art</h2>
+    <div class="proj-grid drop-zone" id="gridAI" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'ai')">
+      <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
+      <button class="proj-add-btn" onclick="addProject('ai')">+ ADD PROJECT</button>
     </div>
   </div>
 
@@ -351,7 +357,7 @@ input[type=file]{display:none;}
     <textarea placeholder="Tell me about your project… / 프로젝트를 알려주세요"></textarea>
   </div>
   <button class="contact-btn" onclick="alert('메시지 전송!\nMessage sent — thank you!')">SEND</button>
-  <p class="contact-email">saesunshinebucket@gmail.com &nbsp;·&nbsp; Seoul, KR</p>
+  <p class="contact-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5b283a3e282e35283332353e392e38303e2f1b3c363a323775383436">[email&#160;protected]</a> &nbsp;·&nbsp; Seoul, KR</p>
 </section>
 
 <!-- FOOTER -->
@@ -381,19 +387,14 @@ input[type=file]{display:none;}
 <!-- MANAGE BUTTON -->
 <button class="manage-btn" id="manageBtn" onclick="toggleEdit()">⚙ MANAGE</button>
 
-<!-- DRIVE STATUS BAR -->
-<div id="driveBar" style="display:none;position:fixed;bottom:68px;right:24px;z-index:600;background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:8px 14px;font-size:11px;letter-spacing:1px;color:var(--muted);backdrop-filter:blur(8px);align-items:center;gap:8px;">
-  <span id="driveStatus">☁️ 연결 안됨</span>
-  <button id="driveConnectBtn" onclick="signInGoogle()" style="padding:4px 10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px;">연결</button>
-  <button id="driveDisconnectBtn" onclick="signOutGoogle()" style="display:none;padding:4px 10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px;">해제</button>
-</div>
+
 
 <!-- FILE INPUTS -->
 <input type="file" id="projThumbInput" accept="image/*">
 <input type="file" id="projGalleryInput" accept="image/*" multiple>
 <input type="file" id="sbPanelInput" accept="image/*" multiple>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ─────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────
@@ -405,284 +406,124 @@ let currentProjId = null;
 let currentSbStrip = null;
 let projCounter = 0;
 
-// ─────────────────────────────────────────
-// ☁️ GOOGLE DRIVE 연동
-// ─────────────────────────────────────────
-const GOOGLE_CLIENT_ID = '699818780590-uqnls4m8lt9qlskkje61c2lvqjb72g0p.apps.googleusercontent.com';
-const GOOGLE_API_KEY   = 'AIzaSyB5gfxm2eO4omgY8tyJQf1GbfIKG1GzIQE';
-const DRIVE_FOLDER_NAME = 'SaeKim Portfolio';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+// ── GitHub 이미지 저장소 ──────────────────────────────────
+const GH_OWNER   = 'saesunshinebucket';
+const GH_REPO    = 'saesunshinebucket.github.io';
+const GH_BRANCH  = 'main';
+const GH_IMG_DIR = 'images';
+const LS_TOKEN_KEY = 'sk_gh_token';
+const LS_META_KEY  = 'sk_portfolio_meta';
 
+function ghToken() { return localStorage.getItem(LS_TOKEN_KEY) || ''; }
+function saveGhToken(t) {
+  if (t) localStorage.setItem(LS_TOKEN_KEY, t.trim());
+  else localStorage.removeItem(LS_TOKEN_KEY);
+}
 
-let googleAccessToken = null;
-let driveFolderId = null;
-let tokenClient = null;
-let gapiReady = false;
-let gsiReady = false;
-
-
-function initGoogleApi() {
-  if (typeof gapi === 'undefined' || typeof google === 'undefined') {
-    setTimeout(initGoogleApi, 500);
-    return;
-  }
-  gapi.load('client', async () => {
-    await gapi.client.init({
-      apiKey: GOOGLE_API_KEY,
-      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-    });
-    gapiReady = true;
-    checkGoogleReady();
+function fileToB64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload  = e => res(e.target.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
   });
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GOOGLE_CLIENT_ID,
-    scope: SCOPES,
-    callback: async (resp) => {
-      if (resp.error) { showDriveStatus('⚠️ 로그인 실패'); return; }
-      googleAccessToken = resp.access_token;
-      gapi.client.setToken({ access_token: googleAccessToken });
-      localStorage.setItem('gd_token', googleAccessToken);
-      showDriveStatus('☁️ 연결 중...');
-      await getOrCreateDriveFolder();
-      showDriveStatus('☁️ 드라이브 연결됨');
-      updateDriveBar();
-    }
-  });
-  gsiReady = true;
-  checkGoogleReady();
 }
 
+function tempUrl(file) { return URL.createObjectURL(file); }
 
-function checkGoogleReady() {
-  if (gapiReady && gsiReady) {
-    loadFromStorage();
-    const savedToken = localStorage.getItem('gd_token');
-    if (savedToken) {
-      googleAccessToken = savedToken;
-      gapi.client.setToken({ access_token: googleAccessToken });
-      getOrCreateDriveFolder()
-        .then(() => {
-          showDriveStatus('☁️ 드라이브 연결됨');
-          updateDriveBar();
-        })
-        .catch(() => {
-          googleAccessToken = null;
-          driveFolderId = null;
-          localStorage.removeItem('gd_token');
-          showDriveStatus('☁️ 연결 안됨');
-          updateDriveBar();
-        });
-    }
-  }
-}
-
-
-function signInGoogle() {
-  if (!tokenClient) { alert('Google API 로딩 중입니다. 잠시 후 다시 시도하세요.'); return; }
-  tokenClient.requestAccessToken({ prompt: '' });
-}
-function signOutGoogle() {
-  if (googleAccessToken) {
-    google.accounts.oauth2.revoke(googleAccessToken, () => {});
-    googleAccessToken = null;
-    driveFolderId = null;
-    localStorage.removeItem('gd_token');
-    gapi.client.setToken(null);
-    showDriveStatus('☁️ 연결 안됨');
-    updateDriveBar();
-  }
-}
-async function getOrCreateDriveFolder() {
-  if (!googleAccessToken) throw new Error('no token');
+async function uploadToGitHub(file, prefix) {
+  const token = ghToken();
+  if (!token) { alert('⚙ Manage 모드에서 GitHub Token을 먼저 입력해주세요.'); throw new Error('no token'); }
+  const ext  = (file.name||'img').split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+  const name = prefix + '_' + Date.now() + '.' + ext;
+  const path = GH_IMG_DIR + '/' + name;
+  const b64  = await fileToB64(file);
+  let sha = '';
   try {
-    const res = await gapi.client.drive.files.list({
-      q: "name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false",
-      fields: 'files(id,name)',
-      spaces: 'drive'
-    });
-    if (res.result.files && res.result.files.length > 0) {
-      driveFolderId = res.result.files[0].id;
-      return;
-    }
-    const create = await gapi.client.drive.files.create({
-      resource: { name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' },
-      fields: 'id'
-    });
-    driveFolderId = create.result.id;
-  } catch(e) {
-    console.warn('Drive folder error:', e);
-    throw e;
-  }
+    const chk = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
+      { headers: { Authorization: 'token '+token } });
+    if (chk.ok) { const j = await chk.json(); sha = j.sha||''; }
+  } catch(e) {}
+  const body = { message: 'Add portfolio image: '+name, content: b64, branch: GH_BRANCH };
+  if (sha) body.sha = sha;
+  const res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
+    { method:'PUT', headers:{ Authorization:'token '+token,'Content-Type':'application/json' }, body:JSON.stringify(body) });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message||'upload failed'); }
+  return 'https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/'+path;
 }
-async function saveToDrive(filename, content) {
-  if (!googleAccessToken || !driveFolderId) return;
+
+async function deleteFromGitHub(rawUrl) {
+  const token = ghToken(); if (!token) return;
+  const m = rawUrl.match(/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/(.+)/);
+  if (!m) return;
+  const path = m[1];
   try {
-    const boundary = 'boundary314159';
-    const mimeType = 'application/json';
-    const encoded = btoa(unescape(encodeURIComponent(content)));
-    const existing = await gapi.client.drive.files.list({
-      q: "name='" + filename + "' and '" + driveFolderId + "' in parents and trashed=false",
-      fields: 'files(id)'
-    });
-    let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-    let method = 'POST';
-    const meta = { name: filename, parents: [driveFolderId] };
-    if (existing.result.files && existing.result.files.length > 0) {
-      url = 'https://www.googleapis.com/upload/drive/v3/files/' + existing.result.files[0].id + '?uploadType=multipart';
-      method = 'PATCH';
-      delete meta.parents;
-    }
-    const CRLF = '\r\n';
-    const body = '--' + boundary + CRLF +
-      'Content-Type: application/json' + CRLF + CRLF +
-      JSON.stringify(meta) + CRLF +
-      '--' + boundary + CRLF +
-      'Content-Type: ' + mimeType + CRLF +
-      'Content-Transfer-Encoding: base64' + CRLF + CRLF +
-      encoded + CRLF +
-      '--' + boundary + '--';
-    await fetch(url, {
-      method,
-      headers: {
-        'Authorization': 'Bearer ' + googleAccessToken,
-        'Content-Type': 'multipart/related; boundary="' + boundary + '"'
-      },
-      body
-    });
-  } catch(e) {
-    console.warn('Drive save error:', e);
+    const chk = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
+      { headers: { Authorization: 'token '+token } });
+    if (!chk.ok) return;
+    const { sha } = await chk.json();
+    await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
+      { method:'DELETE', headers:{ Authorization:'token '+token,'Content-Type':'application/json' },
+        body: JSON.stringify({ message:'Remove portfolio image', sha, branch:GH_BRANCH }) });
+  } catch(e) { console.warn('GitHub delete failed:',e); }
+}
+
+let _stTimer = null;
+function showStatus(msg, ms) {
+  let el = document.getElementById('_st');
+  if (!el) {
+    el = document.createElement('div'); el.id = '_st';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:900;background:var(--paper);color:var(--bg);padding:10px 28px;border-radius:2px;font-size:12px;letter-spacing:1px;pointer-events:none;transition:opacity .3s;';
+    document.body.appendChild(el);
   }
+  el.textContent = msg; el.style.opacity = '1';
+  if (_stTimer) clearTimeout(_stTimer);
+  if (ms) _stTimer = setTimeout(()=>{ el.style.opacity='0'; }, ms);
 }
-function showDriveStatus(msg) {
-  const el = document.getElementById('driveStatus');
-  if (el) el.textContent = msg;
-}
 
-
-// LOCAL STORAGE 자동 저장
-const STORAGE_KEY = 'saekim_portfolio';
-
-
+// ── 저장 / 불러오기 ───────────────────────────────────────
 async function saveToStorage() {
   try {
     const heroSrc = document.getElementById('heroImg').src || '';
-    const data = { projects, sbPanels, projCounter, heroSrc: heroSrc.startsWith('data:') ? heroSrc : '' };
-    const json = JSON.stringify(data);
-    localStorage.setItem(STORAGE_KEY, json);
-    if (googleAccessToken && driveFolderId) {
-      saveToDrive('portfolio_data.json', json).catch(() => {});
-    }async function saveToDriveAndGetId(filename, encoded, mimeType) {
-  if (!googleAccessToken || !driveFolderId) return null;
+    const heroRef = heroSrc.startsWith('http') ? heroSrc : '';
+    const saveProjects = {};
+    for (const k of Object.keys(projects)) {
+      saveProjects[k] = projects[k].map(p => ({
+        ...p,
+        thumb:  (p.thumb||'').startsWith('http') ? p.thumb : '',
+        images: (p.images||[]).filter(s => s && s.startsWith('http'))
+      }));
+    }
+    const saveSb = {};
+    for (const k of Object.keys(sbPanels)) {
+      saveSb[k] = sbPanels[k].filter(p => p.src && p.src.startsWith('http'));
+    }
+    localStorage.setItem(LS_META_KEY, JSON.stringify({ projects:saveProjects, sbPanels:saveSb, projCounter, heroRef }));
+  } catch(e) { console.warn('저장 오류:',e); }
+}
+
+function applyLoadedData(data) {
+  if (data.projCounter) projCounter = data.projCounter;
+  if (data.projects)    projects    = data.projects;
+  if (data.sbPanels)    sbPanels    = data.sbPanels;
+  const heroRef = data.heroRef || data.heroSrc || '';
+  if (heroRef) {
+    const img = document.getElementById('heroImg');
+    const ph  = document.getElementById('heroPh');
+    img.src = heroRef; img.style.display='block'; ph.style.display='none';
+  }
+  renderGrid('concept'); renderGrid('ai'); renderGrid('pro'); renderGrid('personal');
+  renderStrip('stripA'); updateCount();
+}
+
+function loadFromStorage() {
   try {
-    const boundary = 'foo_bar_baz';
-    const CRLF = '\r\n';
-    const meta = { name: filename, parents: [driveFolderId] };
-    const existing = await gapi.client.drive.files.list({
-      q: "name='" + filename + "' and '" + driveFolderId + "' in parents and trashed=false",
-      fields: 'files(id)'
-    });
-    let method = 'POST';
-    let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id';
-    if (existing.result.files && existing.result.files.length > 0) {
-      const existingId = existing.result.files[0].id;
-      method = 'PATCH';
-      url = 'https://www.googleapis.com/upload/drive/v3/files/' + existingId + '?uploadType=multipart&fields=id';
-      delete meta.parents;
-    }
-    const body = '--' + boundary + CRLF +
-      'Content-Type: application/json' + CRLF + CRLF +
-      JSON.stringify(meta) + CRLF +
-      '--' + boundary + CRLF +
-      'Content-Type: ' + mimeType + CRLF +
-      'Content-Transfer-Encoding: base64' + CRLF + CRLF +
-      encoded + CRLF +
-      '--' + boundary + '--';
-    const res = await fetch(url, {
-      method,
-      headers: {
-        'Authorization': 'Bearer ' + googleAccessToken,
-        'Content-Type': 'multipart/related; boundary=' + boundary
-      },
-      body
-    });
-    const result = await res.json();
-    // Drive 파일 공개 접근 설정
-    await fetch('https://www.googleapis.com/drive/v3/files/' + result.id + '/permissions', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + googleAccessToken,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ role: 'reader', type: 'anyone' })
-    });
-    return result.id;
-  } catch(e) {
-    console.warn('saveToDriveAndGetId error:', e);
-    return null;
-  }
-}
-  } catch(e) {
-    console.warn('저장 오류:', e);
-    if (e.name === 'QuotaExceededError') alert('⚠️ 로컬 저장 공간 부족.');
-  }
+    const raw = localStorage.getItem(LS_META_KEY) || localStorage.getItem('saekim_portfolio');
+    if (raw) applyLoadedData(JSON.parse(raw));
+  } catch(e) { console.warn('불러오기 실패:',e); }
 }
 
 
-async function loadFromStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    if (data.projects) projects = data.projects;
-    if (data.sbPanels) sbPanels = data.sbPanels;
-    if (data.projCounter) projCounter = data.projCounter;
-    if (data.heroSrc && data.heroSrc.startsWith('data:')) {
-      const img = document.getElementById('heroImg');
-      const ph  = document.getElementById('heroPh');
-      img.src = data.heroSrc;
-      img.style.display = 'block';
-      ph.style.display  = 'none';
-    }
-    renderGrid('concept');
-    renderGrid('ai');
-    renderGrid('pro');
-    renderGrid('personal');
-    renderStrip('stripA');
-    updateCount();
-  } catch(e) {
-    console.warn('불러오기 실패:', e);
-  }
-}
-
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload  = e => resolve(e.target.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-async function processImage(file, filenameHint) {
-  // Drive 연결 시 Drive에 업로드 후 URL 반환, 미연결 시 base64 fallback
-  if (googleAccessToken && driveFolderId) {
-    try {
-      const base64 = await fileToBase64(file);
-      const encoded = base64.split(',')[1];
-      const fileId = await saveToDriveAndGetId(file.name || filenameHint || 'image.jpg', encoded, file.type);
-      if (fileId) {
-        return 'https://drive.google.com/uc?export=view&id=' + fileId;
-      }
-    } catch(err) {
-      console.warn('Drive processImage failed, fallback to base64:', err);
-    }
-  }
-  return await fileToBase64(file);
-}
-async function processImage(file, filenameHint) {
-  return await fileToBase64(file);
-}
 
 // ─────────────────────────────────────────
 // NAV
@@ -700,20 +541,13 @@ window.addEventListener('scroll',()=>{
 // ─────────────────────────────────────────
 document.getElementById('heroFileInput').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f||!editMode) return;
-  const base64 = await fileToBase64(f);
-  const img=document.getElementById('heroImg');
-  // 즉시 base64로 표시
-  img.src=base64; img.style.display='block';
-  document.getElementById('heroPh').style.display='none';
   e.target.value='';
-  // 드라이브 연결 시 백그라운드 업로드 후 src 교체
-  if(googleAccessToken && driveFolderId){
-    try {
-      const driveUrl = await uploadToDrive(base64, 'hero.jpg');
-      if(driveUrl) img.src = driveUrl;
-    } catch(err){ console.warn('Drive hero upload failed:', err); }
-  }
-  saveToStorage();
+  const img=document.getElementById('heroImg');
+  img.src=tempUrl(f); img.style.display='block';
+  document.getElementById('heroPh').style.display='none';
+  showStatus('⬆️ 업로드 중…');
+  try { img.src=await uploadToGitHub(f,'hero'); saveToStorage(); showStatus('✅ 완료!',2000); }
+  catch(err){ showStatus('❌ '+err.message,4000); }
 });
 
 document.getElementById('heroBg').addEventListener('dragover', e=>{
@@ -730,17 +564,12 @@ document.getElementById('heroBg').addEventListener('drop', async e=>{
   if(!editMode) return;
   const f=e.dataTransfer.files[0];
   if(!f||!f.type.startsWith('image/')) return;
-  const base64 = await fileToBase64(f);
   const img=document.getElementById('heroImg');
-  img.src=base64; img.style.display='block';
+  img.src=tempUrl(f); img.style.display='block';
   document.getElementById('heroPh').style.display='none';
-  if(googleAccessToken && driveFolderId){
-    try {
-      const driveUrl = await uploadToDrive(base64, 'hero.jpg');
-      if(driveUrl) img.src = driveUrl;
-    } catch(err){ console.warn('Drive hero drop upload failed:', err); }
-  }
-  saveToStorage();
+  showStatus('⬆️ 업로드 중…');
+  try { img.src=await uploadToGitHub(f,'hero'); saveToStorage(); showStatus('✅ 완료!',2000); }
+  catch(err){ showStatus('❌ '+err.message,4000); }
 });
 
 
@@ -780,34 +609,28 @@ function enterEdit(){
   editMode=true;
   document.body.classList.add('edit-on');
   const btn=document.getElementById('manageBtn');
-  btn.textContent='✓ DONE';
-  btn.classList.add('on');
-  const db=document.getElementById('driveBar');
-  if(db){ db.style.display='flex'; updateDriveBar(); }
+  btn.textContent='✓ DONE'; btn.classList.add('on');
+  let bar=document.getElementById('_ghBar');
+  if(!bar){
+    bar=document.createElement('div'); bar.id='_ghBar';
+    bar.style.cssText='position:fixed;bottom:68px;right:24px;z-index:600;background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:10px 14px;display:flex;align-items:center;gap:8px;backdrop-filter:blur(8px);';
+    bar.innerHTML='<span style="font-size:11px;letter-spacing:1px;color:var(--muted);">GitHub Token</span>'
+      +'<input id="_ghTok" type="password" placeholder="ghp_..." style="width:180px;padding:6px 10px;background:var(--bg);border:1px solid var(--line);border-radius:2px;font-size:12px;color:var(--paper);outline:none;">'
+      +'<button onclick="saveGhToken(document.getElementById(\'_ghTok\').value);this.textContent=\'✓\';" style="padding:6px 12px;background:var(--paper);color:var(--bg);border:none;border-radius:2px;font-size:11px;cursor:pointer;">저장</button>'
+      +'<button onclick="if(confirm(\'깨진 이미지 데이터를 모두 초기화하시겠습니까?\')){localStorage.removeItem(LS_META_KEY);localStorage.removeItem(\'saekim_portfolio\');projects={concept:[],ai:[],pro:[],personal:[]};sbPanels={stripA:[]};projCounter=0;[\'concept\',\'ai\',\'pro\',\'personal\'].forEach(k=>renderGrid(k));renderStrip(\'stripA\');updateCount();showStatus(\'✅ 초기화 완료\',2000);}" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:2px;font-size:11px;cursor:pointer;margin-left:4px;">🗑 초기화</button>';
+    document.body.appendChild(bar);
+  }
+  document.getElementById('_ghTok').value=ghToken();
+  bar.style.display='flex';
 }
 function exitEdit(){
   editMode=false;
   document.body.classList.remove('edit-on');
   const btn=document.getElementById('manageBtn');
-  btn.textContent='⚙ MANAGE';
-  btn.classList.remove('on');
-  const db=document.getElementById('driveBar');
-  if(db) db.style.display='none';
+  btn.textContent='⚙ MANAGE'; btn.classList.remove('on');
+  const bar=document.getElementById('_ghBar'); if(bar) bar.style.display='none';
 }
-function updateDriveBar(){
-  const connectBtn=document.getElementById('driveConnectBtn');
-  const disconnectBtn=document.getElementById('driveDisconnectBtn');
-  if(!connectBtn||!disconnectBtn) return;
-  if(googleAccessToken && driveFolderId){
-    connectBtn.style.display='none';
-    disconnectBtn.style.display='inline-block';
-    showDriveStatus('☁️ 드라이브 연결됨');
-  } else {
-    connectBtn.style.display='inline-block';
-    disconnectBtn.style.display='none';
-    showDriveStatus('☁️ 연결 안됨');
-  }
-}
+
 
 
 // ─────────────────────────────────────────
@@ -819,37 +642,24 @@ function addProject(key){
 }
 document.getElementById('projThumbInput').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f||!currentProjKey) return;
-  // 먼저 base64로 읽어서 즉시 미리보기 가능하게
-  const base64 = await fileToBase64(f);
-  projCounter++;
-  const id='proj_'+projCounter;
-  // 카드 즉시 base64로 생성 (드라이브 업로드 전에 먼저 표시)
-  const proj={id, key:currentProjKey, thumb:base64, name:'Project '+projCounter, tag:tagFor(currentProjKey), desc:'', images:[]};
-  projects[currentProjKey].push(proj);
-  renderGrid(currentProjKey);
-  updateCount();
   e.target.value='';
-  // 드라이브 연결 시 백그라운드로 업로드 후 URL 교체
-  if(googleAccessToken && driveFolderId){
-    try {
-      const driveUrl = await uploadToDrive(base64, `thumb_${id}.jpg`);
-      if(driveUrl){
-        proj.thumb = driveUrl;
-        renderGrid(currentProjKey);
-      }
-    } catch(err){ console.warn('Drive upload failed, keeping base64:', err); }
-  }
-  saveToStorage();
+  projCounter++; const id='proj_'+projCounter;
+  const proj={id,key:currentProjKey,thumb:tempUrl(f),name:'Project '+projCounter,tag:tagFor(currentProjKey),desc:'',images:[]};
+  projects[currentProjKey].push(proj); renderGrid(currentProjKey); updateCount();
+  showStatus('⬆️ 업로드 중…');
+  try { proj.thumb=await uploadToGitHub(f,'thumb_'+id); renderGrid(currentProjKey); saveToStorage(); showStatus('✅ 완료!',2000); }
+  catch(err){ showStatus('❌ '+err.message,4000); }
 });
 
-function tagFor(k){return k==='concept'?'CONCEPT':k==='pro'?'UNRELEASED':'PERSONAL';}
+function tagFor(k){return k==='concept'?'CONCEPT':k==='ai'?'AI CONCEPT':k==='pro'?'UNRELEASED':'PERSONAL';}
 
 function renderGrid(key){
   const gridId={concept:'gridConcept',ai:'gridAI',pro:'gridPro',personal:'gridPersonal'}[key];
-  const grid=document.getElementById(gridId);
+  const grid=document.getElementById(gridId); if(!grid) return;
   const addBtn=grid.querySelector('.proj-add-btn');
   grid.querySelectorAll('.proj-card').forEach(c=>c.remove());
   projects[key].forEach(proj=>{
+    if(!proj.thumb||!proj.thumb.startsWith('http')) return; // 깨진 항목 건너뜀
     const card=document.createElement('div');
     card.className='proj-card';
     card.dataset.id=proj.id;
@@ -862,7 +672,7 @@ function renderGrid(key){
       </div>
       <span class="proj-card-count">${proj.images.length} images</span>`;
     card.addEventListener('click',()=>openModal(proj.id, key));
-    grid.insertBefore(card,addBtn);
+    if(addBtn) grid.insertBefore(card,addBtn); else grid.appendChild(card);
   });
 }
 
@@ -930,6 +740,8 @@ function updateProjMeta(){
 
 function deleteProject(){
   if(!confirm('이 프로젝트를 삭제하시겠습니까?')) return;
+  const proj=getProj();
+  if(proj){ [proj.thumb,...(proj.images||[])].forEach(url=>{ if(url&&url.includes('raw.githubusercontent.com')) deleteFromGitHub(url); }); }
   projects[currentProjKey]=projects[currentProjKey].filter(p=>p.id!==currentProjId);
   renderGrid(currentProjKey);
   updateCount();
@@ -939,6 +751,7 @@ function deleteProject(){
 
 function deleteModalImg(idx){
   const proj=getProj(); if(!proj) return;
+  const url=proj.images[idx]; if(url&&url.includes('raw.githubusercontent.com')) deleteFromGitHub(url);
   proj.images.splice(idx,1);
   renderModalGallery(proj);
   renderGrid(currentProjKey);
@@ -951,23 +764,15 @@ function getProj(){
 
 document.getElementById('projGalleryInput').addEventListener('change', async e=>{
   const proj=getProj(); if(!proj) return;
-  for(const f of e.target.files){
-    const base64 = await fileToBase64(f);
-    proj.images.push(base64);
-    renderModalGallery(proj);
-    renderGrid(currentProjKey);
-    // 드라이브 연결 시 백그라운드 업로드 후 URL 교체
-    if(googleAccessToken && driveFolderId){
-      const idx = proj.images.length - 1;
-      try {
-        const driveUrl = await uploadToDrive(base64, `gallery_${proj.id}_${idx}.jpg`);
-        if(driveUrl){ proj.images[idx] = driveUrl; renderModalGallery(proj); renderGrid(currentProjKey); }
-      } catch(err){ console.warn('Drive gallery upload failed:', err); }
-    }
+  const files=[...e.target.files]; e.target.value='';
+  for(const f of files){
+    const idx=proj.images.push(tempUrl(f))-1;
+    renderModalGallery(proj); renderGrid(currentProjKey);
+    showStatus('⬆️ 업로드 중…');
+    try { proj.images[idx]=await uploadToGitHub(f,'gallery_'+proj.id+'_'+idx); renderModalGallery(proj); renderGrid(currentProjKey); saveToStorage(); showStatus('✅ 완료!',2000); }
+    catch(err){ showStatus('❌ '+err.message,4000); }
   }
-  updateCount();
-  saveToStorage();
-  e.target.value='';
+  updateCount(); saveToStorage();
 });
 
 function closeModal(){
@@ -984,35 +789,28 @@ function addSbPanel(stripId){
 }
 document.getElementById('sbPanelInput').addEventListener('change', async e=>{
   if(!currentSbStrip) return;
-  for(const f of e.target.files){
-    const base64 = await fileToBase64(f);
-    sbPanels[currentSbStrip].push({src: base64});
+  const files=[...e.target.files]; e.target.value='';
+  for(const f of files){
+    const idx=sbPanels[currentSbStrip].push({src:tempUrl(f)})-1;
     renderStrip(currentSbStrip);
-    // 드라이브 연결 시 백그라운드 업로드 후 URL 교체
-    if(googleAccessToken && driveFolderId){
-      const idx = sbPanels[currentSbStrip].length - 1;
-      try {
-        const driveUrl = await uploadToDrive(base64, `sb_${currentSbStrip}_${idx}.jpg`);
-        if(driveUrl){ sbPanels[currentSbStrip][idx].src = driveUrl; renderStrip(currentSbStrip); }
-      } catch(err){ console.warn('Drive sb upload failed:', err); }
-    }
+    showStatus('⬆️ 패널 업로드 중…');
+    try { sbPanels[currentSbStrip][idx].src=await uploadToGitHub(f,'sb_'+currentSbStrip+'_'+idx); renderStrip(currentSbStrip); saveToStorage(); showStatus('✅ 완료!',2000); }
+    catch(err){ showStatus('❌ '+err.message,4000); }
   }
-  saveToStorage();
-  e.target.value='';
 });
 
 function renderStrip(stripId){
-  const strip=document.getElementById(stripId);
+  const strip=document.getElementById(stripId); if(!strip) return;
   const addBtn=strip.querySelector('.sb-add-btn');
   strip.querySelectorAll('.sb-panel').forEach(p=>p.remove());
-  sbPanels[stripId].forEach((item,i)=>{
+  sbPanels[stripId].filter(item=>item.src&&item.src.startsWith('http')).forEach((item,i)=>{
     const panel=document.createElement('div');
     panel.className='sb-panel';
     panel.innerHTML=`
       <img src="${item.src}" alt="" onclick="openLb('${item.src}')">
       <span class="sb-num">${String(i+1).padStart(2,'0')}</span>
       <div class="sb-caption">CUT ${String(i+1).padStart(2,'0')}</div>`;
-    strip.insertBefore(panel,addBtn);
+    if(addBtn) strip.insertBefore(panel,addBtn); else strip.appendChild(panel);
   });
 }
 
@@ -1021,25 +819,37 @@ function renderStrip(stripId){
 // ─────────────────────────────────────────
 function dzDropSb(e, stripId){
   e.preventDefault();
-  const el2=e.currentTarget;
-  el2.classList.remove('drag-over');
+  e.currentTarget.classList.remove('drag-over');
   if(!editMode) return;
   const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
   if(!files.length) return;
   (async()=>{
     for(const f of files){
-      const base64 = await fileToBase64(f);
-      sbPanels[stripId].push({src: base64});
+      const idx=sbPanels[stripId].push({src:tempUrl(f)})-1;
       renderStrip(stripId);
-      if(googleAccessToken && driveFolderId){
-        const idx = sbPanels[stripId].length - 1;
-        try {
-          const driveUrl = await uploadToDrive(base64, `sb_${stripId}_${idx}.jpg`);
-          if(driveUrl){ sbPanels[stripId][idx].src = driveUrl; renderStrip(stripId); }
-        } catch(err){ console.warn('Drive sb drop upload failed:', err); }
-      }
+      showStatus('⬆️ 업로드 중…');
+      try { sbPanels[stripId][idx].src=await uploadToGitHub(f,'sb_'+stripId+'_'+idx); renderStrip(stripId); saveToStorage(); showStatus('✅ 완료!',2000); }
+      catch(err){ showStatus('❌ '+err.message,4000); }
     }
-    saveToStorage();
+  })();
+}
+
+// project grid drag & drop
+function dzDrop(e, key){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(!editMode) return;
+  const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  if(!files.length) return;
+  (async()=>{
+    for(const f of files){
+      projCounter++; const id='proj_'+projCounter;
+      const proj={id,key,thumb:tempUrl(f),name:'Project '+projCounter,tag:tagFor(key),desc:'',images:[]};
+      projects[key].push(proj); renderGrid(key); updateCount();
+      showStatus('⬆️ 업로드 중…');
+      try { proj.thumb=await uploadToGitHub(f,'thumb_'+id); renderGrid(key); saveToStorage(); showStatus('✅ 완료!',2000); }
+      catch(err){ showStatus('❌ '+err.message,4000); }
+    }
   })();
 }
 
@@ -1053,19 +863,12 @@ function dzDropModal(e){
   if(!files.length) return;
   (async()=>{
     for(const f of files){
-      const base64 = await fileToBase64(f);
-      proj.images.push(base64);
-      renderModalGallery(proj);
-      renderGrid(currentProjKey);
-      if(googleAccessToken && driveFolderId){
-        const idx = proj.images.length - 1;
-        try {
-          const driveUrl = await uploadToDrive(base64, `gallery_${proj.id}_drop_${idx}.jpg`);
-          if(driveUrl){ proj.images[idx] = driveUrl; renderModalGallery(proj); renderGrid(currentProjKey); }
-        } catch(err){ console.warn('Drive modal drop upload failed:', err); }
-      }
+      const idx=proj.images.push(tempUrl(f))-1;
+      renderModalGallery(proj); renderGrid(currentProjKey);
+      showStatus('⬆️ 업로드 중…');
+      try { proj.images[idx]=await uploadToGitHub(f,'gallery_'+proj.id+'_drop_'+idx); renderModalGallery(proj); renderGrid(currentProjKey); saveToStorage(); showStatus('✅ 완료!',2000); }
+      catch(err){ showStatus('❌ '+err.message,4000); }
     }
-    saveToStorage();
   })();
 }
 
@@ -1076,8 +879,8 @@ function dzLeave(el){ el.classList.remove('drag-over'); }
 // COUNT
 // ─────────────────────────────────────────
 function updateCount(){
-  const total=projects.concept.length+projects.pro.length+projects.personal.length;
-  document.getElementById('worksCount').textContent=total+' projects';
+  const total=Object.values(projects).flat().filter(p=>p.thumb&&p.thumb.startsWith('http')).length;
+  const el=document.getElementById('worksCount'); if(el) el.textContent=total+' projects';
 }
 
 // ─────────────────────────────────────────
@@ -1089,7 +892,7 @@ function closeLb(){document.getElementById('lb').classList.remove('open');}
 // ─────────────────────────────────────────
 // 🚀 초기화
 // ─────────────────────────────────────────
-window.addEventListener('load', initGoogleApi);
+window.addEventListener('load', loadFromStorage);
 </script>
 
 <!-- PASSWORD MODAL -->
