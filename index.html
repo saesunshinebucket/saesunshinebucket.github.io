@@ -264,6 +264,14 @@ input[type=file]{display:none;}
   </div>
 
   <div class="works-cat">
+    <h2 class="works-cat-title">AI Concept Art</h2>
+    <div class="proj-grid drop-zone" id="gridAI" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'ai')">
+      <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
+      <button class="proj-add-btn" onclick="addProject('ai')">+ ADD PROJECT</button>
+    </div>
+  </div>
+
+  <div class="works-cat">
     <h2 class="works-cat-title">Storyboard · Previs</h2>
     <div class="sb-strip drop-zone" id="stripA" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDropSb(event,'stripA')">
       <div class="drop-hint"><span class="drop-hint-text">↓ 패널 이미지를 드래그하여 추가</span></div>
@@ -349,7 +357,7 @@ input[type=file]{display:none;}
     <textarea placeholder="Tell me about your project… / 프로젝트를 알려주세요"></textarea>
   </div>
   <button class="contact-btn" onclick="alert('메시지 전송!\nMessage sent — thank you!')">SEND</button>
-  <p class="contact-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c2f3d392f29322f343532393e293f3739281c3b313d3530723f3331">[email&#160;protected]</a> &nbsp;·&nbsp; Seoul, KR</p>
+  <p class="contact-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abd8caced8dec5d8c3c2c5cec9dec8c0cedfebccc6cac2c785c8c4c6">[email&#160;protected]</a> &nbsp;·&nbsp; Seoul, KR</p>
 </section>
 
 <!-- FOOTER -->
@@ -391,7 +399,7 @@ input[type=file]{display:none;}
 // STATE
 // ─────────────────────────────────────────
 let editMode = false;
-let projects = { concept:[], pro:[], personal:[] };
+let projects = { concept:[], ai:[], pro:[], personal:[] };
 let sbPanels = { stripA:[] };
 let currentProjKey = null;
 let currentProjId = null;
@@ -504,7 +512,7 @@ function applyLoadedData(data) {
     const ph  = document.getElementById('heroPh');
     img.src = heroRef; img.style.display='block'; ph.style.display='none';
   }
-  renderGrid('concept'); renderGrid('pro'); renderGrid('personal');
+  renderGrid('concept'); renderGrid('ai'); renderGrid('pro'); renderGrid('personal');
   renderStrip('stripA'); updateCount();
 }
 
@@ -643,7 +651,7 @@ document.getElementById('projThumbInput').addEventListener('change', async e=>{
   catch(err){ showStatus('❌ '+err.message,4000); }
 });
 
-function tagFor(k){return k==='concept'?'CONCEPT':k==='pro'?'UNRELEASED':'PERSONAL';}
+function tagFor(k){return k==='concept'?'CONCEPT':k==='ai'?'AI CONCEPT':k==='pro'?'UNRELEASED':'PERSONAL';}
 
 function renderGrid(key){
   const gridId={concept:'gridConcept',ai:'gridAI',pro:'gridPro',personal:'gridPersonal'}[key];
