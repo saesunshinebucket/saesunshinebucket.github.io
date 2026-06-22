@@ -349,7 +349,7 @@ input[type=file]{display:none;}
     <textarea placeholder="Tell me about your project… / 프로젝트를 알려주세요"></textarea>
   </div>
   <button class="contact-btn" onclick="alert('메시지 전송!\nMessage sent — thank you!')">SEND</button>
-  <p class="contact-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="394a585c4a4c574a5150575c5b4c5a525c4d795e54585055175a5654">[email&#160;protected]</a> &nbsp;·&nbsp; Seoul, KR</p>
+  <p class="contact-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c2f3d392f29322f343532393e293f3739281c3b313d3530723f3331">[email&#160;protected]</a> &nbsp;·&nbsp; Seoul, KR</p>
 </section>
 
 <!-- FOOTER -->
@@ -608,7 +608,8 @@ function enterEdit(){
     bar.style.cssText='position:fixed;bottom:68px;right:24px;z-index:600;background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:10px 14px;display:flex;align-items:center;gap:8px;backdrop-filter:blur(8px);';
     bar.innerHTML='<span style="font-size:11px;letter-spacing:1px;color:var(--muted);">GitHub Token</span>'
       +'<input id="_ghTok" type="password" placeholder="ghp_..." style="width:180px;padding:6px 10px;background:var(--bg);border:1px solid var(--line);border-radius:2px;font-size:12px;color:var(--paper);outline:none;">'
-      +'<button onclick="saveGhToken(document.getElementById(\'_ghTok\').value);this.textContent=\'✓\';" style="padding:6px 12px;background:var(--paper);color:var(--bg);border:none;border-radius:2px;font-size:11px;cursor:pointer;">저장</button>';
+      +'<button onclick="saveGhToken(document.getElementById(\'_ghTok\').value);this.textContent=\'✓\';" style="padding:6px 12px;background:var(--paper);color:var(--bg);border:none;border-radius:2px;font-size:11px;cursor:pointer;">저장</button>'
+      +'<button onclick="if(confirm(\'깨진 이미지 데이터를 모두 초기화하시겠습니까?\')){localStorage.removeItem(LS_META_KEY);localStorage.removeItem(\'saekim_portfolio\');projects={concept:[],ai:[],pro:[],personal:[]};sbPanels={stripA:[]};projCounter=0;[\'concept\',\'ai\',\'pro\',\'personal\'].forEach(k=>renderGrid(k));renderStrip(\'stripA\');updateCount();showStatus(\'✅ 초기화 완료\',2000);}" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:2px;font-size:11px;cursor:pointer;margin-left:4px;">🗑 초기화</button>';
     document.body.appendChild(bar);
   }
   document.getElementById('_ghTok').value=ghToken();
@@ -645,11 +646,12 @@ document.getElementById('projThumbInput').addEventListener('change', async e=>{
 function tagFor(k){return k==='concept'?'CONCEPT':k==='pro'?'UNRELEASED':'PERSONAL';}
 
 function renderGrid(key){
-  const gridId={concept:'gridConcept',pro:'gridPro',personal:'gridPersonal'}[key];
-  const grid=document.getElementById(gridId);
+  const gridId={concept:'gridConcept',ai:'gridAI',pro:'gridPro',personal:'gridPersonal'}[key];
+  const grid=document.getElementById(gridId); if(!grid) return;
   const addBtn=grid.querySelector('.proj-add-btn');
   grid.querySelectorAll('.proj-card').forEach(c=>c.remove());
   projects[key].forEach(proj=>{
+    if(!proj.thumb||!proj.thumb.startsWith('http')) return; // 깨진 항목 건너뜀
     const card=document.createElement('div');
     card.className='proj-card';
     card.dataset.id=proj.id;
@@ -662,7 +664,7 @@ function renderGrid(key){
       </div>
       <span class="proj-card-count">${proj.images.length} images</span>`;
     card.addEventListener('click',()=>openModal(proj.id, key));
-    grid.insertBefore(card,addBtn);
+    if(addBtn) grid.insertBefore(card,addBtn); else grid.appendChild(card);
   });
 }
 
@@ -790,17 +792,17 @@ document.getElementById('sbPanelInput').addEventListener('change', async e=>{
 });
 
 function renderStrip(stripId){
-  const strip=document.getElementById(stripId);
+  const strip=document.getElementById(stripId); if(!strip) return;
   const addBtn=strip.querySelector('.sb-add-btn');
   strip.querySelectorAll('.sb-panel').forEach(p=>p.remove());
-  sbPanels[stripId].forEach((item,i)=>{
+  sbPanels[stripId].filter(item=>item.src&&item.src.startsWith('http')).forEach((item,i)=>{
     const panel=document.createElement('div');
     panel.className='sb-panel';
     panel.innerHTML=`
       <img src="${item.src}" alt="" onclick="openLb('${item.src}')">
       <span class="sb-num">${String(i+1).padStart(2,'0')}</span>
       <div class="sb-caption">CUT ${String(i+1).padStart(2,'0')}</div>`;
-    strip.insertBefore(panel,addBtn);
+    if(addBtn) strip.insertBefore(panel,addBtn); else strip.appendChild(panel);
   });
 }
 
@@ -869,8 +871,8 @@ function dzLeave(el){ el.classList.remove('drag-over'); }
 // COUNT
 // ─────────────────────────────────────────
 function updateCount(){
-  const total=projects.concept.length+projects.pro.length+projects.personal.length;
-  document.getElementById('worksCount').textContent=total+' projects';
+  const total=Object.values(projects).flat().filter(p=>p.thumb&&p.thumb.startsWith('http')).length;
+  const el=document.getElementById('worksCount'); if(el) el.textContent=total+' projects';
 }
 
 // ─────────────────────────────────────────
