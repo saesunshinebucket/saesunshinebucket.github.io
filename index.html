@@ -633,7 +633,7 @@ async function loadFromStorage() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     const data = JSON.parse(raw);
-    if (data.projects) projects = data.projects;
+    if (data.projects) { projects = Object.assign({concept:[],ai:[],pro:[],personal:[]}, data.projects); ['concept','ai','pro','personal'].forEach(function(k){ if (!Array.isArray(projects[k])) projects[k] = []; }); }
     if (data.sbPanels) sbPanels = data.sbPanels;
     if (data.projCounter) projCounter = data.projCounter;
     if (data.heroSrc && data.heroSrc.startsWith('data:')) {
