@@ -273,9 +273,9 @@ input[type=file]{display:none;}
 
   <div class="works-cat">
     <h2 class="works-cat-title">Storyboard · Previs</h2>
-    <div class="sb-strip drop-zone" id="stripA" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDropSb(event,'stripA')">
-      <div class="drop-hint"><span class="drop-hint-text">↓ 패널 이미지를 드래그하여 추가</span></div>
-      <button class="sb-add-btn" onclick="addSbPanel('stripA')">+ ADD PANEL</button>
+    <div class="proj-grid drop-zone" id="gridSb" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'sb')">
+      <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
+      <button class="proj-add-btn" onclick="addProject('sb')">+ ADD PROJECT</button>
     </div>
   </div>
 
@@ -399,7 +399,7 @@ input[type=file]{display:none;}
 // STATE
 // ─────────────────────────────────────────
 let editMode = false;
-let projects = { concept:[], ai:[], pro:[], personal:[] };
+let projects = { concept:[], ai:[], sb:[], pro:[], personal:[] };
 let sbPanels = { stripA:[] };
 let currentProjKey = null;
 let currentProjId = null;
@@ -505,7 +505,7 @@ async function saveToStorage() {
 function applyLoadedData(data) {
   if (data.projCounter) projCounter = data.projCounter;
   if (data.projects)    projects    = data.projects;
-  ['concept','ai','pro','personal'].forEach(function(k){ if(!projects[k]) projects[k]=[]; });
+  ['concept','ai','sb','pro','personal'].forEach(function(k){ if(!projects[k]) projects[k]=[]; });
   if (data.sbPanels)    sbPanels    = data.sbPanels;
   const heroRef = data.heroRef || data.heroSrc || '';
   if (heroRef) {
@@ -513,7 +513,7 @@ function applyLoadedData(data) {
     const ph  = document.getElementById('heroPh');
     img.src = heroRef; img.style.display='block'; ph.style.display='none';
   }
-  renderGrid('concept'); renderGrid('ai'); renderGrid('pro'); renderGrid('personal');
+  renderGrid('concept'); renderGrid('ai'); renderGrid('sb'); renderGrid('pro'); renderGrid('personal');
   renderStrip('stripA'); updateCount();
 }
 
@@ -652,10 +652,10 @@ document.getElementById('projThumbInput').addEventListener('change', async e=>{
   catch(err){ showStatus('❌ '+err.message,4000); }
 });
 
-function tagFor(k){return k==='concept'?'CONCEPT':k==='ai'?'AI CONCEPT':k==='pro'?'UNRELEASED':'PERSONAL';}
+function tagFor(k){return k==='concept'?'CONCEPT':k==='ai'?'AI CONCEPT':k==='sb'?'STORYBOARD':k==='pro'?'UNRELEASED':'PERSONAL';}
 
 function renderGrid(key){
-  const gridId={concept:'gridConcept',ai:'gridAI',pro:'gridPro',personal:'gridPersonal'}[key];
+  const gridId={concept:'gridConcept',ai:'gridAI',sb:'gridSb',pro:'gridPro',personal:'gridPersonal'}[key];
   const grid=document.getElementById(gridId); if(!grid) return;
   const addBtn=grid.querySelector('.proj-add-btn');
   grid.querySelectorAll('.proj-card').forEach(c=>c.remove());
