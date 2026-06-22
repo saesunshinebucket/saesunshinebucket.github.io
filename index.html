@@ -505,6 +505,7 @@ async function saveToStorage() {
 function applyLoadedData(data) {
   if (data.projCounter) projCounter = data.projCounter;
   if (data.projects)    projects    = data.projects;
+  ['concept','ai','pro','personal'].forEach(function(k){ if(!projects[k]) projects[k]=[]; });
   if (data.sbPanels)    sbPanels    = data.sbPanels;
   const heroRef = data.heroRef || data.heroSrc || '';
   if (heroRef) {
