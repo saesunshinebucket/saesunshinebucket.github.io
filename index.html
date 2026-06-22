@@ -191,6 +191,7 @@ footer{display:flex;flex-direction:column;align-items:center;gap:14px;padding:48
 .drop-hint-text{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);opacity:.5;}
 
 /* UNRELEASED LOCK */
+.unrel-badge{font-size:.6em;vertical-align:middle;opacity:.45;cursor:help;}
 .unrel-lock{position:relative;}
 .unrel-overlay{display:flex;position:absolute;inset:0;z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(244,242,238,.92);backdrop-filter:blur(8px);}
 .unrel-lock-icon{font-size:28px;opacity:.4;}
@@ -279,18 +280,11 @@ input[type=file]{display:none;}
     </div>
   </div>
 
-  <div class="works-cat unrel-lock" id="unrelSection">
-    <h2 class="works-cat-title">Unreleased Works</h2>
-    <div style="position:relative;min-height:220px;">
-      <div class="unrel-overlay" id="unrelOverlay">
-        <span class="unrel-lock-icon">🔒</span>
-        <span class="unrel-lock-label">RESTRICTED ACCESS</span>
-        <button class="unrel-lock-btn" onclick="openUnrelModal()">VIEW WORKS</button>
-      </div>
-      <div class="proj-grid drop-zone" id="gridPro" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'pro')">
-        <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
-        <button class="proj-add-btn" onclick="addProject('pro')">+ ADD PROJECT</button>
-      </div>
+  <div class="works-cat" id="unrelSection">
+    <h2 class="works-cat-title">Unreleased Works <span class="unrel-badge" title="상세 보기는 비밀번호가 필요합니다">🔒</span></h2>
+    <div class="proj-grid drop-zone" id="gridPro" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'pro')">
+      <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
+      <button class="proj-add-btn" onclick="addProject('pro')">+ ADD PROJECT</button>
     </div>
   </div>
 
@@ -399,6 +393,7 @@ input[type=file]{display:none;}
 // STATE
 // ─────────────────────────────────────────
 let editMode = false;
+let unrelUnlocked = false; let pendingUnrel = null;
 let projects = { concept:[], ai:[], sb:[], pro:[], personal:[] };
 let sbPanels = { stripA:[] };
 let currentProjKey = null;
@@ -593,6 +588,32 @@ function openPwModal(){
 function closePwModal(){
   document.getElementById('pwModalBg').classList.remove('open');
 }
+function openUnrelModal(){
+  document.getElementById('unrelPwInput').value='';
+  document.getElementById('unrelPwError').textContent='';
+  document.getElementById('unrelPwInput').classList.remove('error');
+  document.getElementById('unrelModalBg').classList.add('open');
+  setTimeout(()=>document.getElementById('unrelPwInput').focus(),100);
+}
+function closeUnrelModal(){
+  document.getElementById('unrelModalBg').classList.remove('open');
+  pendingUnrel=null;
+}
+function checkUnrelPw(){
+  const val=document.getElementById('unrelPwInput').value;
+  if(val===PW){
+    unrelUnlocked=true;
+    document.getElementById('unrelModalBg').classList.remove('open');
+    const pend=pendingUnrel; pendingUnrel=null;
+    if(pend) openModal(pend.projId, pend.key);
+  } else {
+    const inp=document.getElementById('unrelPwInput');
+    inp.classList.add('error');
+    document.getElementById('unrelPwError').textContent='비밀번호가 틀렸습니다.';
+    setTimeout(()=>inp.classList.remove('error'),400);
+    inp.value='';
+  }
+}
 function checkPw(){
   const val=document.getElementById('pwInput').value;
   if(val===PW){
@@ -683,6 +704,7 @@ function renderGrid(key){
 function openModal(projId, key){
   const proj=projects[key].find(p=>p.id===projId);
   if(!proj) return;
+  if(key==='pro' && !unrelUnlocked && !editMode){ pendingUnrel={projId,key}; openUnrelModal(); return; }
   currentProjId=projId;
   currentProjKey=key;
   const content=document.getElementById('modalContent');
