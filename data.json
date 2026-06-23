@@ -1,0 +1,214 @@
+{
+  "projects": {
+    "concept": [
+      {
+        "id": "proj_26",
+        "key": "concept",
+        "thumb": "images/thumb_proj_26_1782179155682.jpg",
+        "name": "Project 26",
+        "tag": "CONCEPT",
+        "desc": "",
+        "images": []
+      },
+      {
+        "id": "proj_5",
+        "key": "concept",
+        "thumb": "images/thumb_proj_5_1782117862275.jpg",
+        "name": "콘크리트 유토피아",
+        "tag": "CONCEPT",
+        "desc": "",
+        "images": []
+      },
+      {
+        "id": "proj_6",
+        "key": "concept",
+        "thumb": "images/thumb_proj_6_1782117868403.jpg",
+        "name": "정이",
+        "tag": "CONCEPT",
+        "desc": "",
+        "images": []
+      },
+      {
+        "id": "proj_9",
+        "key": "concept",
+        "thumb": "images/thumb_proj_9_1782117886941.jpg",
+        "name": "경성크리처",
+        "tag": "CONCEPT",
+        "desc": "",
+        "images": []
+      },
+      {
+        "id": "proj_41",
+        "key": "concept",
+        "thumb": "images/thumb_proj_41_1782183221164.jpg",
+        "name": "대홍수",
+        "tag": "CONCEPT",
+        "desc": "",
+        "images": [
+          "images/gallery_proj_41_0_1782183284951.jpg",
+          "images/gallery_proj_41_1_1782183326418.jpg"
+        ]
+      },
+      {
+        "id": "proj_7",
+        "key": "concept",
+        "thumb": "images/thumb_proj_7_1782117877404.jpg",
+        "name": "하이파이브",
+        "tag": "CONCEPT",
+        "desc": "",
+        "images": []
+      },
+      {
+        "id": "proj_8",
+        "key": "concept",
+        "thumb": "images/thumb_proj_8_1782117883092.jpg",
+        "name": "간호중",
+        "tag": "CONCEPT",
+        "desc": "",
+        "images": []
+      },
+      {
+        "id": "proj_12",
+        "key": "concept",
+        "thumb": "images/thumb_proj_12_1782119600152.jpg",
+        "name": "2019_MMA",
+        "tag": "CONCEPT",
+        "desc": "",
+        "images": [
+          "images/gallery_proj_12_0_1782183450489.png",
+          "images/gallery_proj_12_1_1782183454676.png",
+          "images/gallery_proj_12_2_1782183458580.jpg"
+        ]
+      },
+      {
+        "id": "proj_32",
+        "key": "concept",
+        "thumb": "images/thumb_proj_32_1782181030005.jpg",
+        "name": "Fly Jiang Su",
+        "tag": "CONCEPT",
+        "desc": "",
+        "images": [
+          "images/gallery_proj_32_1_1782181092142.jpg",
+          "images/gallery_proj_32_1_1782181223064.jpg",
+          "images/gallery_proj_32_2_1782181230815.jpg"
+        ]
+      },
+      {
+        "id": "proj_39",
+        "key": "concept",
+        "thumb": "images/thumb_proj_39_1782182888845.jpg",
+        "name": "함께 달려 나무를 심는 포레스트런 – 나무같은 러너 편 _ 현대자동차",
+        "tag": "CONCEPT",
+        "desc": "Tree Character Design",
+        "images": [
+          "images/gallery_proj_39_0_1782182905618.jpg",
+          "images/gallery_proj_39_1_1782182911520.jpg",
+          "images/gallery_proj_39_2_1782182916721.jpg",
+          "images/gallery_proj_39_3_1782182921478.jpg",
+          "images/gallery_proj_39_4_1782182933391.jpg",
+          "images/gallery_proj_39_5_1782182937650.jpg"
+        ]
+      }
+    ],
+    "pro": [
+      {
+        "id": "proj_34",
+        "key": "pro",
+        "thumb": "images/thumb_proj_34_1782181286445.jpg",
+        "name": "Project 34",
+        "tag": "UNRELEASED",
+        "desc": "",
+        "images": []
+      },
+      {
+        "id": "proj_35",
+        "key": "pro",
+        "thumb": "images/thumb_proj_35_1782182631834.jpg",
+        "name": "Project 35",
+        "tag": "UNRELEASED",
+        "desc": "",
+        "images": []
+      },
+      {
+        "id": "proj_36",
+        "key": "pro",
+        "thumb": "images/thumb_proj_36_1782182650018.jpg",
+        "name": "Project 36",
+        "tag": "UNRELEASED",
+        "desc": "",
+        "images": []
+      }
+    ],
+    "personal": [
+      {
+        "id": "proj_37",
+        "key": "personal",
+        "thumb": "images/thumb_proj_37_1782182673903.jpg",
+        "name": "Project 37",
+        "tag": "PERSONAL",
+        "desc": "",
+        "images": [
+          "images/gallery_proj_37_0_1782182763397.jpg"
+        ]
+      }
+    ],
+    "ai": [
+      {
+        "id": "proj_28",
+        "key": "ai",
+        "thumb": "images/thumb_proj_28_1782180328301.jpg",
+        "name": "Project 28",
+        "tag": "AI CONCEPT",
+        "desc": "",
+        "images": []
+      },
+      {
+        "id": "proj_40",
+        "key": "ai",
+        "thumb": "images/thumb_proj_40_1782183123335.jpg",
+        "name": "Project 40",
+        "tag": "AI CONCEPT",
+        "desc": "",
+        "images": []
+      }
+    ],
+    "sb": [
+      {
+        "id": "proj_25",
+        "key": "sb",
+        "thumb": "images/thumb_proj_25_1782135338828.jpg",
+        "name": "Project 25",
+        "tag": "STORYBOARD",
+        "desc": "",
+        "images": []
+      },
+      {
+        "id": "proj_29",
+        "key": "sb",
+        "thumb": "images/thumb_proj_29_1782180388944.jpg",
+        "name": "Project 29",
+        "tag": "STORYBOARD",
+        "desc": "",
+        "images": []
+      },
+      {
+        "id": "proj_30",
+        "key": "sb",
+        "thumb": "images/thumb_proj_30_1782180400090.jpg",
+        "name": "Project 30",
+        "tag": "STORYBOARD",
+        "desc": "",
+        "images": []
+      }
+    ]
+  },
+  "sbPanels": {
+    "stripA": [
+      {
+        "src": "images/sb_stripA_0_1782133019118.jpg"
+      }
+    ]
+  },
+  "projCounter": 42,
+  "heroRef": "images/hero_1782117759423.jpg"
+}
