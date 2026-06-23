@@ -1067,5 +1067,92 @@ window.addEventListener('load', loadFromStorage);
   else { window.addEventListener('load', function(){ setTimeout(loadShared, 0); }); }
 })();
 </script>
+
+<!-- PUBLISH button: lets the site owner commit current data to data.json -->
+<script>
+/* ===== PUBLISH button: commit current data to data.json ===== */
+(function(){
+  if (window.__publishInit) return;
+  window.__publishInit = true;
+
+  function buildPublishData(){
+    if (typeof saveToStorage === 'function') saveToStorage();
+    var meta = JSON.parse(localStorage.getItem('sk_portfolio_meta') || 'null');
+    if (!meta) throw new Error('저장된 데이터가 없습니다');
+    var RAW = 'https://raw.githubusercontent.com/' + GH_OWNER + '/' + GH_REPO + '/' + GH_BRANCH + '/';
+    var BASE = 'https://' + GH_OWNER + '.github.io/';
+    function toAbs(u){
+      if (typeof u !== 'string') return u;
+      if (u.indexOf(RAW) === 0) return BASE + u.slice(RAW.length);
+      var m = u.match(/^https:\/\/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/(.*)$/);
+      if (m) return BASE + m[1];
+      if (u.indexOf('http') === 0) return u;
+      return BASE + u.replace(/^\//, '');
+    }
+    var data = JSON.parse(JSON.stringify(meta));
+    for (var k in data.projects) { (data.projects[k]||[]).forEach(function(p){ if(p.thumb)p.thumb=toAbs(p.thumb); if(Array.isArray(p.images))p.images=p.images.map(toAbs); }); }
+    if (data.sbPanels) { for (var s in data.sbPanels) { (data.sbPanels[s]||[]).forEach(function(it){ if(it&&it.src)it.src=toAbs(it.src); }); } }
+    if (data.heroRef) data.heroRef = toAbs(data.heroRef);
+    return JSON.stringify(data, null, 2);
+  }
+
+  function b64utf8(str){ return btoa(unescape(encodeURIComponent(str))); }
+
+  async function publishData(){
+    var token = (typeof ghToken === 'function') ? ghToken() : null;
+    if (!token) { alert('⚙ Manage 모드에서 GitHub Token을 먼저 입력해주세요.'); return; }
+    var json = buildPublishData();
+    var path = 'data.json';
+    var sha = '';
+    try {
+      var chk = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path, { headers: { Authorization: 'token '+token } });
+      if (chk.ok) { var j = await chk.json(); sha = j.sha || ''; }
+    } catch(e){}
+    var body = { message: 'Publish portfolio data via site', content: b64utf8(json), branch: GH_BRANCH };
+    if (sha) body.sha = sha;
+    var res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path, {
+      method: 'PUT',
+      headers: { Authorization: 'token '+token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { var t = await res.text(); throw new Error('GitHub ' + res.status + ': ' + t.slice(0,120)); }
+    return true;
+  }
+
+  async function onPublishClick(btn){
+    var orig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ 게시 중…';
+    try {
+      await publishData();
+      btn.textContent = '✅ 게시 완료';
+      setTimeout(function(){ btn.textContent = orig; btn.disabled = false; }, 2500);
+    } catch(e){
+      console.error('publish failed', e);
+      btn.textContent = '⚠ 실패';
+      alert('게시 실패: ' + (e && e.message ? e.message : e));
+      setTimeout(function(){ btn.textContent = orig; btn.disabled = false; }, 2500);
+    }
+  }
+
+  function injectButton(){
+    var bar = document.getElementById('_ghBar');
+    if (!bar || bar.querySelector('#_publishBtn')) return;
+    var btn = document.createElement('button');
+    btn.id = '_publishBtn';
+    btn.type = 'button';
+    btn.textContent = '⬆ PUBLISH';
+    btn.title = '현재 작품 구성을 사이트에 게시합니다 (모든 방문자·핸드폰에 반영)';
+    btn.style.cssText = 'margin-left:8px;padding:6px 12px;font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;background:#1A1917;color:#F4F2EE;border:none;border-radius:6px;';
+    btn.addEventListener('click', function(){ onPublishClick(btn); });
+    bar.appendChild(btn);
+  }
+
+  // Inject now (if bar already present) and whenever it appears
+  injectButton();
+  var mo = new MutationObserver(function(){ injectButton(); });
+  mo.observe(document.body, { childList: true, subtree: false });
+})();
+</script>
 </body>
 </html>
