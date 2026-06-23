@@ -944,5 +944,103 @@ window.addEventListener('load', loadFromStorage);
   </div>
 </div>
 
+
+<!-- WORKS project drag-to-reorder -->
+<script>
+(function(){
+  if (window.__projReorderInit) return;
+  window.__projReorderInit = true;
+  var META_KEY = 'sk_portfolio_meta';
+  var gridToKey = { gridConcept:'concept', gridAI:'ai', gridSb:'sb', gridPro:'pro', gridPersonal:'personal' };
+  var dragId = null, dragGrid = null;
+
+  function readMeta(){ try { return JSON.parse(localStorage.getItem(META_KEY)) || {}; } catch(e){ return {}; } }
+  function writeMeta(m){ localStorage.setItem(META_KEY, JSON.stringify(m)); }
+
+  function reorder(key, fromId, toId, before){
+    var meta = readMeta();
+    if (!meta.projects || !meta.projects[key]) return;
+    var arr = meta.projects[key];
+    var fromIdx = arr.findIndex(function(p){ return p.id === fromId; });
+    if (fromIdx === -1) return;
+    var item = arr.splice(fromIdx, 1)[0];
+    var toIdx = arr.findIndex(function(p){ return p.id === toId; });
+    if (toIdx === -1) { arr.push(item); }
+    else { arr.splice(before ? toIdx : toIdx + 1, 0, item); }
+    meta.projects[key] = arr;
+    writeMeta(meta);
+    if (typeof loadFromStorage === 'function') loadFromStorage();
+    requestAnimationFrame(decorate);
+  }
+
+  function decorate(){
+    Object.keys(gridToKey).forEach(function(gid){
+      var grid = document.getElementById(gid);
+      if (!grid) return;
+      var key = gridToKey[gid];
+      grid.querySelectorAll('.proj-card').forEach(function(card){
+        if (card.__reorderBound) return;
+        card.__reorderBound = true;
+        card.setAttribute('draggable', 'true');
+        card.classList.add('reorderable');
+        card.addEventListener('dragstart', function(e){
+          dragId = card.dataset.id; dragGrid = key;
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          try { e.dataTransfer.setData('text/proj-reorder', dragId); } catch(_){}
+        });
+        card.addEventListener('dragend', function(){
+          card.classList.remove('dragging'); dragId = null; dragGrid = null;
+          grid.querySelectorAll('.reorder-over-l,.reorder-over-r').forEach(function(c){ c.classList.remove('reorder-over-l','reorder-over-r'); });
+        });
+        card.addEventListener('dragover', function(e){
+          if (dragId === null || dragGrid !== key) return;
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = 'move';
+          var r = card.getBoundingClientRect();
+          var before = (e.clientX - r.left) < r.width / 2;
+          card.classList.toggle('reorder-over-l', before);
+          card.classList.toggle('reorder-over-r', !before);
+        });
+        card.addEventListener('dragleave', function(){
+          card.classList.remove('reorder-over-l','reorder-over-r');
+        });
+        card.addEventListener('drop', function(e){
+          if (dragId === null || dragGrid !== key) return;
+          e.preventDefault();
+          e.stopPropagation();
+          var r = card.getBoundingClientRect();
+          var before = (e.clientX - r.left) < r.width / 2;
+          var targetId = card.dataset.id;
+          card.classList.remove('reorder-over-l','reorder-over-r');
+          if (targetId && targetId !== dragId) reorder(key, dragId, targetId, before);
+        });
+      });
+    });
+  }
+
+  function init(){
+    if (!document.getElementById('reorderStyle')) {
+      var st = document.createElement('style');
+      st.id = 'reorderStyle';
+      st.textContent = '.proj-card.reorderable{cursor:grab}.proj-card.dragging{opacity:.45;cursor:grabbing}.proj-card.reorder-over-l{box-shadow:-4px 0 0 0 #fff inset,0 0 0 2px rgba(255,255,255,.4)}.proj-card.reorder-over-r{box-shadow:4px 0 0 0 #fff inset,0 0 0 2px rgba(255,255,255,.4)}';
+      document.head.appendChild(st);
+    }
+    decorate();
+    var mo = new MutationObserver(function(){ requestAnimationFrame(decorate); });
+    Object.keys(gridToKey).forEach(function(gid){
+      var g = document.getElementById(gid);
+      if (g) mo.observe(g, { childList: true });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
 </body>
 </html>
