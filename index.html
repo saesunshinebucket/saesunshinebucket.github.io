@@ -444,7 +444,7 @@ async function uploadToGitHub(file, prefix) {
   const res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
     { method:'PUT', headers:{ Authorization:'token '+token,'Content-Type':'application/json' }, body:JSON.stringify(body) });
   if (!res.ok) { const e = await res.json(); throw new Error(e.message||'upload failed'); }
-  return 'https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/'+path;
+  return 'https://'+GH_OWNER+'.github.io/'+path;
 }
 
 async function deleteFromGitHub(rawUrl) {
@@ -1040,6 +1040,31 @@ window.addEventListener('load', loadFromStorage);
   } else {
     init();
   }
+})();
+</script>
+
+<!-- Load shared project data (data.json) for visitors whose localStorage is empty (e.g. mobile) -->
+<script>
+(function(){
+  function hasLocalData(){
+    try { return !!(localStorage.getItem('sk_portfolio_meta') || localStorage.getItem('saekim_portfolio')); }
+    catch(e){ return false; }
+  }
+  function loadShared(){
+    try {
+      var rendered = document.querySelectorAll('.proj-card').length;
+      if (hasLocalData() && rendered > 0) return; // owner with saved data: keep their version
+      fetch('data.json?v=' + Date.now(), { cache: 'no-store' })
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(data){
+          if (data && typeof applyLoadedData === 'function') applyLoadedData(data);
+        })
+        .catch(function(e){ console.warn('data.json load failed', e); });
+    } catch(e){ console.warn(e); }
+  }
+  // Run after the app's own 'load' handler (loadFromStorage) has had a chance to run
+  if (document.readyState === 'complete') { setTimeout(loadShared, 0); }
+  else { window.addEventListener('load', function(){ setTimeout(loadShared, 0); }); }
 })();
 </script>
 </body>
