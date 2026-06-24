@@ -5,7 +5,7 @@
         "id": "proj_26",
         "key": "concept",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_26_1782179155682.jpg",
-        "name": "Project 26",
+        "name": "지옥",
         "tag": "CONCEPT",
         "desc": "",
         "images": []
@@ -157,16 +157,16 @@
         "id": "proj_28",
         "key": "ai",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_28_1782180328301.jpg",
-        "name": "Project 28",
+        "name": "Virtual_IDOL",
         "tag": "AI CONCEPT",
         "desc": "",
         "images": []
       },
       {
-        "id": "proj_40",
+        "id": "proj_43",
         "key": "ai",
-        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_40_1782183123335.jpg",
-        "name": "Project 40",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_43_1782288285039.jpg",
+        "name": "Project 43",
         "tag": "AI CONCEPT",
         "desc": "",
         "images": []
@@ -209,6 +209,6 @@
       }
     ]
   },
-  "projCounter": 42,
+  "projCounter": 43,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg"
 }
