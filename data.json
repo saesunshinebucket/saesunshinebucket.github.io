@@ -152,6 +152,24 @@
           "https://saesunshinebucket.github.io/images/gallery_proj_44_4_1782290120563.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_44_5_1782290124346.jpg"
         ]
+      },
+      {
+        "id": "proj_49",
+        "key": "concept",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_49_1782299384540.jpg",
+        "name": "리틀미미",
+        "tag": "CONCEPT",
+        "desc": "",
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_49_0_1782299422480.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_49_1_1782299426886.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_49_2_1782299442337.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_49_3_1782299446982.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_49_4_1782299451029.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_49_5_1782299464671.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_49_6_1782299473978.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_49_7_1782299479136.jpg"
+        ]
       }
     ],
     "pro": [
@@ -209,6 +227,15 @@
           "https://saesunshinebucket.github.io/images/gallery_proj_37_14_1782298999108.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_37_15_1782299008015.jpg"
         ]
+      },
+      {
+        "id": "proj_48",
+        "key": "personal",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_48_1782299365160.jpg",
+        "name": "Project 48",
+        "tag": "PERSONAL",
+        "desc": "",
+        "images": []
       }
     ],
     "ai": [
@@ -312,6 +339,6 @@
       }
     ]
   },
-  "projCounter": 47,
+  "projCounter": 49,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg"
 }
