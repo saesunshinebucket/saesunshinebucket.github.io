@@ -115,7 +115,7 @@
         "id": "proj_34",
         "key": "pro",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_34_1782181286445.jpg",
-        "name": "Project 34",
+        "name": "Unknown_Project",
         "tag": "UNRELEASED",
         "desc": "",
         "images": []
@@ -124,7 +124,7 @@
         "id": "proj_35",
         "key": "pro",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_35_1782182631834.jpg",
-        "name": "Project 35",
+        "name": "Unknown_Project",
         "tag": "UNRELEASED",
         "desc": "",
         "images": []
@@ -133,7 +133,7 @@
         "id": "proj_36",
         "key": "pro",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_36_1782182650018.jpg",
-        "name": "Project 36",
+        "name": "Unknown_Project",
         "tag": "UNRELEASED",
         "desc": "",
         "images": []
@@ -144,7 +144,7 @@
         "id": "proj_37",
         "key": "personal",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_37_1782182673903.jpg",
-        "name": "Project 37",
+        "name": "Carrot",
         "tag": "PERSONAL",
         "desc": "",
         "images": [
@@ -162,7 +162,8 @@
         "desc": "",
         "images": [
           "https://saesunshinebucket.github.io/images/gallery_proj_28_0_1782288479943.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_28_1_1782288484043.jpg"
+          "https://saesunshinebucket.github.io/images/gallery_proj_28_1_1782288484043.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_28_2_1782288697606.png"
         ]
       },
       {
@@ -180,7 +181,7 @@
         "id": "proj_25",
         "key": "sb",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_25_1782135338828.jpg",
-        "name": "Project 25",
+        "name": "하이파이브",
         "tag": "STORYBOARD",
         "desc": "",
         "images": []
@@ -189,7 +190,7 @@
         "id": "proj_29",
         "key": "sb",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_29_1782180388944.jpg",
-        "name": "Project 29",
+        "name": "정이",
         "tag": "STORYBOARD",
         "desc": "",
         "images": []
@@ -198,7 +199,7 @@
         "id": "proj_30",
         "key": "sb",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_30_1782180400090.jpg",
-        "name": "Project 30",
+        "name": "경성크리처",
         "tag": "STORYBOARD",
         "desc": "",
         "images": []
