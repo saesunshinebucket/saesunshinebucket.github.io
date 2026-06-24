@@ -160,7 +160,10 @@
         "name": "Virtual_IDOL",
         "tag": "AI CONCEPT",
         "desc": "",
-        "images": []
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_28_0_1782288479943.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_28_1_1782288484043.jpg"
+        ]
       },
       {
         "id": "proj_43",
