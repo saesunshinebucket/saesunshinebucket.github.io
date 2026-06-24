@@ -45,7 +45,15 @@
           "https://saesunshinebucket.github.io/images/gallery_proj_6_4_1782295162313.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_6_5_1782295168974.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_6_6_1782295177008.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_6_7_1782295180906.jpg"
+          "https://saesunshinebucket.github.io/images/gallery_proj_6_7_1782295180906.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_6_8_1782297856910.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_6_9_1782297863451.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_6_10_1782297868088.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_6_11_1782298396724.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_6_12_1782298439420.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_6_13_1782298445181.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_6_14_1782298462057.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_6_15_1782298468563.jpg"
         ]
       },
       {
@@ -237,7 +245,10 @@
         "name": "정이",
         "tag": "STORYBOARD",
         "desc": "",
-        "images": []
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_29_0_1782297819736.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_29_1_1782297830937.jpg"
+        ]
       },
       {
         "id": "proj_30",
