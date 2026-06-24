@@ -144,22 +144,6 @@
           "https://saesunshinebucket.github.io/images/gallery_proj_44_4_1782290120563.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_44_5_1782290124346.jpg"
         ]
-      },
-      {
-        "id": "proj_46",
-        "key": "concept",
-        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_46_1782296118601.jpg",
-        "name": "한성대 프로젝트",
-        "tag": "CONCEPT",
-        "desc": "",
-        "images": [
-          "https://saesunshinebucket.github.io/images/gallery_proj_46_0_1782296186917.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_46_1_1782296193144.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_46_2_1782296197079.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_46_3_1782296201691.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_46_4_1782296206282.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_46_5_1782296212552.jpg"
-        ]
       }
     ],
     "pro": [
@@ -226,7 +210,14 @@
         "name": "한성대 프로젝트",
         "tag": "AI CONCEPT",
         "desc": "",
-        "images": []
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_47_0_1782296760012.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_47_1_1782296764094.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_47_2_1782296768590.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_47_3_1782296776069.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_47_4_1782296782056.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_47_5_1782296787863.jpg"
+        ]
       }
     ],
     "sb": [
