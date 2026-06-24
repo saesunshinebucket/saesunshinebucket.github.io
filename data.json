@@ -108,6 +108,22 @@
           "https://saesunshinebucket.github.io/images/gallery_proj_39_4_1782182933391.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_39_5_1782182937650.jpg"
         ]
+      },
+      {
+        "id": "proj_44",
+        "key": "concept",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_44_1782290067327.jpg",
+        "name": "아이유_Love wins all MV",
+        "tag": "CONCEPT",
+        "desc": "",
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_44_0_1782290100831.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_44_1_1782290105781.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_44_2_1782290109263.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_44_3_1782290114016.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_44_4_1782290120563.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_44_5_1782290124346.jpg"
+        ]
       }
     ],
     "pro": [
@@ -213,6 +229,6 @@
       }
     ]
   },
-  "projCounter": 43,
+  "projCounter": 44,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg"
 }
