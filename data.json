@@ -317,25 +317,7 @@
         "name": "경성크리처",
         "tag": "STORYBOARD",
         "desc": "",
-        "images": [
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_0_1782298739941.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_1_1782298744205.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_2_1782298756284.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_3_1782298761309.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_4_1782298769446.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_5_1782298786060.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_6_1782298798121.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_7_1782298804963.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_8_1782298810634.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_9_1782298824084.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_10_1782298827963.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_11_1782298832360.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_12_1782298837346.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_13_1782298850017.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_14_1782298854214.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_15_1782298861989.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_30_16_1782298866091.jpg"
-        ]
+        "images": []
       },
       {
         "id": "proj_45",
