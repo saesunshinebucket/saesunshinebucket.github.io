@@ -218,6 +218,15 @@
           "https://saesunshinebucket.github.io/images/gallery_proj_28_2_1782288697606.png",
           "https://saesunshinebucket.github.io/images/gallery_proj_28_3_1782290635952.jpg"
         ]
+      },
+      {
+        "id": "proj_47",
+        "key": "ai",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_47_1782296659838.jpg",
+        "name": "한성대 프로젝트",
+        "tag": "AI CONCEPT",
+        "desc": "",
+        "images": []
       }
     ],
     "sb": [
@@ -252,10 +261,12 @@
         "id": "proj_45",
         "key": "sb",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_45_1782296078679.jpg",
-        "name": "Project 45",
+        "name": "한성대 프로젝트",
         "tag": "STORYBOARD",
         "desc": "",
-        "images": []
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_45_0_1782296680303.jpg"
+        ]
       }
     ]
   },
@@ -266,6 +277,6 @@
       }
     ]
   },
-  "projCounter": 46,
+  "projCounter": 47,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg"
 }
