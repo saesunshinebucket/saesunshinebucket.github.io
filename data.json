@@ -103,7 +103,9 @@
         "name": "하이파이브",
         "tag": "CONCEPT",
         "desc": "",
-        "images": []
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_7_0_1782444853552.jpg"
+        ]
       },
       {
         "id": "proj_8",
@@ -254,6 +256,37 @@
         "tag": "PERSONAL",
         "desc": "",
         "images": []
+      },
+      {
+        "id": "proj_50",
+        "key": "personal",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_50_1782444938362.jpg",
+        "name": "FRG",
+        "tag": "PERSONAL",
+        "desc": "",
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_0_1782444970976.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_1_1782444975678.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_2_1782444980740.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_3_1782444997162.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_4_1782445004965.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_5_1782445011008.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_6_1782445015716.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_7_1782445019978.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_8_1782445023784.jpg"
+        ]
+      },
+      {
+        "id": "proj_51",
+        "key": "personal",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_51_1782445042306.jpg",
+        "name": "Seasons Of Coral",
+        "tag": "PERSONAL",
+        "desc": "",
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_51_0_1782445095283.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_51_1_1782445100937.jpg"
+        ]
       }
     ],
     "ai": [
@@ -339,6 +372,6 @@
       }
     ]
   },
-  "projCounter": 49,
+  "projCounter": 51,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg"
 }
