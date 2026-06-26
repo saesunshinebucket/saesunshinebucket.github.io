@@ -350,7 +350,10 @@
         "name": "경성크리처",
         "tag": "STORYBOARD",
         "desc": "",
-        "images": []
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_30_0_1782452123494.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_30_1_1782452127896.jpg"
+        ]
       },
       {
         "id": "proj_45",
