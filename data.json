@@ -323,15 +323,6 @@
     ],
     "sb": [
       {
-        "id": "proj_25",
-        "key": "sb",
-        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_25_1782135338828.jpg",
-        "name": "하이파이브",
-        "tag": "STORYBOARD",
-        "desc": "",
-        "images": []
-      },
-      {
         "id": "proj_29",
         "key": "sb",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_29_1782180388944.jpg",
@@ -341,6 +332,17 @@
         "images": [
           "https://saesunshinebucket.github.io/images/gallery_proj_29_0_1782297819736.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_29_1_1782297830937.jpg"
+        ]
+      },
+      {
+        "id": "proj_45",
+        "key": "sb",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_45_1782296078679.jpg",
+        "name": "한성대 프로젝트",
+        "tag": "STORYBOARD",
+        "desc": "",
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_45_0_1782296680303.jpg"
         ]
       },
       {
@@ -356,15 +358,13 @@
         ]
       },
       {
-        "id": "proj_45",
+        "id": "proj_25",
         "key": "sb",
-        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_45_1782296078679.jpg",
-        "name": "한성대 프로젝트",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_25_1782135338828.jpg",
+        "name": "하이파이브",
         "tag": "STORYBOARD",
         "desc": "",
-        "images": [
-          "https://saesunshinebucket.github.io/images/gallery_proj_45_0_1782296680303.jpg"
-        ]
+        "images": []
       }
     ]
   },
