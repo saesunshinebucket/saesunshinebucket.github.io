@@ -223,6 +223,17 @@
     ],
     "personal": [
       {
+        "id": "proj_53",
+        "key": "personal",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_53_1782907561721.jpg",
+        "name": "Another Domain",
+        "tag": "PERSONAL",
+        "desc": "",
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_53_0_1782907588821.jpg"
+        ]
+      },
+      {
         "id": "proj_37",
         "key": "personal",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_37_1782182673903.jpg",
@@ -286,17 +297,6 @@
         "images": [
           "https://saesunshinebucket.github.io/images/gallery_proj_52_0_1782452939481.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_52_1_1782452943992.jpg"
-        ]
-      },
-      {
-        "id": "proj_53",
-        "key": "personal",
-        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_53_1782907561721.jpg",
-        "name": "Another Domain",
-        "tag": "PERSONAL",
-        "desc": "",
-        "images": [
-          "https://saesunshinebucket.github.io/images/gallery_proj_53_0_1782907588821.jpg"
         ]
       }
     ],
