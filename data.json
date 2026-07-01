@@ -260,15 +260,6 @@
         ]
       },
       {
-        "id": "proj_48",
-        "key": "personal",
-        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_48_1782299365160.jpg",
-        "name": "Present",
-        "tag": "PERSONAL",
-        "desc": "",
-        "images": []
-      },
-      {
         "id": "proj_50",
         "key": "personal",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_50_1782444938362.jpg",
@@ -286,6 +277,15 @@
           "https://saesunshinebucket.github.io/images/gallery_proj_50_7_1782445019978.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_50_8_1782445023784.jpg"
         ]
+      },
+      {
+        "id": "proj_48",
+        "key": "personal",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_48_1782299365160.jpg",
+        "name": "Present",
+        "tag": "PERSONAL",
+        "desc": "",
+        "images": []
       },
       {
         "id": "proj_52",
