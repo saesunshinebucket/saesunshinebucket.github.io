@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Sae Kim — Visual Concept & Previs Artist</title>
 <style>
 :root {
@@ -1071,7 +1074,10 @@ window.addEventListener('load', loadFromStorage);
     try {
       var rendered = document.querySelectorAll('.proj-card').length;
       if (hasLocalData() && rendered > 0) return; // owner with saved data: keep their version
-      fetch('data.json?v=' + Date.now(), { cache: 'no-store' })
+      fetch('data.json?nocache=' + Date.now() + '_' + Math.random().toString(36).slice(2), {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache, no-store', 'Pragma': 'no-cache' }
+      })
         .then(function(r){ return r.ok ? r.json() : null; })
         .then(function(data){
           if (data && typeof applyLoadedData === 'function') applyLoadedData(data);
