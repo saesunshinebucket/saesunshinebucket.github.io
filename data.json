@@ -295,7 +295,9 @@
         "name": "Another Domain",
         "tag": "PERSONAL",
         "desc": "",
-        "images": []
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_53_0_1782907588821.jpg"
+        ]
       }
     ],
     "ai": [
