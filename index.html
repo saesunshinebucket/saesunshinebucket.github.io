@@ -193,15 +193,6 @@ footer{display:flex;flex-direction:column;align-items:center;gap:14px;padding:48
 .edit-on .drop-hint{display:flex;}
 .drop-hint-text{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);opacity:.5;}
 
-/* UNRELEASED LOCK */
-.unrel-badge{font-size:.6em;vertical-align:middle;opacity:.45;cursor:help;}
-.unrel-lock{position:relative;}
-.unrel-overlay{display:flex;position:absolute;inset:0;z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:rgba(244,242,238,.92);backdrop-filter:blur(8px);}
-.unrel-lock-icon{font-size:28px;opacity:.4;}
-.unrel-lock-label{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--muted);}
-.unrel-lock-btn{padding:10px 24px;border:1px solid var(--line);border-radius:2px;background:transparent;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);cursor:pointer;transition:color .2s,border-color .2s;}
-.unrel-lock-btn:hover{color:var(--paper);border-color:var(--muted);}
-
 @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
 
 /* file input */
@@ -284,11 +275,8 @@ input[type=file]{display:none;}
   </div>
 
   <div class="works-cat" id="unrelSection">
-    <h2 class="works-cat-title">Unreleased Works <span class="unrel-badge" title="상세 보기는 비밀번호가 필요합니다">🔒</span></h2>
-    <div class="proj-grid drop-zone" id="gridPro" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'pro')">
-      <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
-      <button class="proj-add-btn" onclick="addProject('pro')">+ ADD PROJECT</button>
-    </div>
+    <h2 class="works-cat-title">Unreleased Works</h2>
+    <p class="nda-note" style="margin-bottom:0;">비공개·NDA 작업물은 이 사이트에 게시되지 않습니다.<br>포트폴리오 리뷰가 필요하신 경우 이메일로 요청해 주시면 비공개로 공유해 드립니다.<br>Unreleased and NDA-protected work is not hosted on this site — available privately on request.</p>
   </div>
 
   <div class="works-cat">
@@ -396,8 +384,7 @@ input[type=file]{display:none;}
 // STATE
 // ─────────────────────────────────────────
 let editMode = false;
-let unrelUnlocked = false; let pendingUnrel = null;
-let projects = { concept:[], ai:[], sb:[], pro:[], personal:[] };
+let projects = { concept:[], ai:[], sb:[], personal:[] };
 let sbPanels = { stripA:[] };
 let currentProjKey = null;
 let currentProjId = null;
@@ -519,7 +506,8 @@ function scheduleAutoPublish() {
 function applyLoadedData(data) {
   if (data.projCounter) projCounter = data.projCounter;
   if (data.projects)    projects    = data.projects;
-  ['concept','ai','sb','pro','personal'].forEach(function(k){ if(!projects[k]) projects[k]=[]; });
+  delete projects.pro; // NDA/미공개 작업물은 이 사이트에서 다루지 않음 — 레거시 데이터 제거
+  ['concept','ai','sb','personal'].forEach(function(k){ if(!projects[k]) projects[k]=[]; });
   if (data.sbPanels)    sbPanels    = data.sbPanels;
   const heroRef = data.heroRef || data.heroSrc || '';
   if (heroRef) {
@@ -527,7 +515,7 @@ function applyLoadedData(data) {
     const ph  = document.getElementById('heroPh');
     img.src = heroRef; img.style.display='block'; ph.style.display='none';
   }
-  renderGrid('concept'); renderGrid('ai'); renderGrid('sb'); renderGrid('pro'); renderGrid('personal');
+  renderGrid('concept'); renderGrid('ai'); renderGrid('sb'); renderGrid('personal');
   renderStrip('stripA'); updateCount();
 }
 
@@ -607,33 +595,6 @@ function openPwModal(){
 function closePwModal(){
   document.getElementById('pwModalBg').classList.remove('open');
 }
-function openUnrelModal(){
-  document.getElementById('unrelPwInput').value='';
-  document.getElementById('unrelPwError').textContent='';
-  document.getElementById('unrelPwInput').classList.remove('error');
-  document.getElementById('unrelModalBg').classList.add('open');
-  setTimeout(()=>document.getElementById('unrelPwInput').focus(),100);
-}
-function closeUnrelModal(){
-  document.getElementById('unrelModalBg').classList.remove('open');
-  pendingUnrel=null;
-}
-const UNREL_PW = 'Saesunshine2026';
-function checkUnrelPw(){
-  const val=document.getElementById('unrelPwInput').value;
-  if(val===UNREL_PW){
-    unrelUnlocked=true;
-    document.getElementById('unrelModalBg').classList.remove('open');
-    const pend=pendingUnrel; pendingUnrel=null;
-    if(pend) openModal(pend.projId, pend.key);
-  } else {
-    const inp=document.getElementById('unrelPwInput');
-    inp.classList.add('error');
-    document.getElementById('unrelPwError').textContent='비밀번호가 틀렸습니다.';
-    setTimeout(()=>inp.classList.remove('error'),400);
-    inp.value='';
-  }
-}
 function checkPw(){
   const val=document.getElementById('pwInput').value;
   if(val===PW){
@@ -659,7 +620,7 @@ function enterEdit(){
     bar.innerHTML='<span style="font-size:11px;letter-spacing:1px;color:var(--muted);">GitHub Token</span>'
       +'<input id="_ghTok" type="password" placeholder="ghp_..." style="width:180px;padding:6px 10px;background:var(--bg);border:1px solid var(--line);border-radius:2px;font-size:12px;color:var(--paper);outline:none;">'
       +'<button onclick="saveGhToken(document.getElementById(\'_ghTok\').value);this.textContent=\'✓\';" style="padding:6px 12px;background:var(--paper);color:var(--bg);border:none;border-radius:2px;font-size:11px;cursor:pointer;">저장</button>'
-      +'<button onclick="if(confirm(\'깨진 이미지 데이터를 모두 초기화하시겠습니까?\')){localStorage.removeItem(LS_META_KEY);localStorage.removeItem(\'saekim_portfolio\');projects={concept:[],ai:[],pro:[],personal:[]};sbPanels={stripA:[]};projCounter=0;[\'concept\',\'ai\',\'pro\',\'personal\'].forEach(k=>renderGrid(k));renderStrip(\'stripA\');updateCount();showStatus(\'✅ 초기화 완료\',2000);}" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:2px;font-size:11px;cursor:pointer;margin-left:4px;">🗑 초기화</button>';
+      +'<button onclick="if(confirm(\'깨진 이미지 데이터를 모두 초기화하시겠습니까?\')){localStorage.removeItem(LS_META_KEY);localStorage.removeItem(\'saekim_portfolio\');projects={concept:[],ai:[],sb:[],personal:[]};sbPanels={stripA:[]};projCounter=0;[\'concept\',\'ai\',\'sb\',\'personal\'].forEach(k=>renderGrid(k));renderStrip(\'stripA\');updateCount();showStatus(\'✅ 초기화 완료\',2000);}" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:2px;font-size:11px;cursor:pointer;margin-left:4px;">🗑 초기화</button>';
     document.body.appendChild(bar);
   }
   document.getElementById('_ghTok').value=ghToken();
@@ -693,10 +654,10 @@ document.getElementById('projThumbInput').addEventListener('change', async e=>{
   catch(err){ showStatus('❌ '+err.message,4000); }
 });
 
-function tagFor(k){return k==='concept'?'CONCEPT':k==='ai'?'AI CONCEPT':k==='sb'?'STORYBOARD':k==='pro'?'UNRELEASED':'PERSONAL';}
+function tagFor(k){return k==='concept'?'CONCEPT':k==='ai'?'AI CONCEPT':k==='sb'?'STORYBOARD':'PERSONAL';}
 
 function renderGrid(key){
-  const gridId={concept:'gridConcept',ai:'gridAI',sb:'gridSb',pro:'gridPro',personal:'gridPersonal'}[key];
+  const gridId={concept:'gridConcept',ai:'gridAI',sb:'gridSb',personal:'gridPersonal'}[key];
   const grid=document.getElementById(gridId); if(!grid) return;
   const addBtn=grid.querySelector('.proj-add-btn');
   grid.querySelectorAll('.proj-card').forEach(c=>c.remove());
@@ -724,7 +685,6 @@ function renderGrid(key){
 function openModal(projId, key){
   const proj=projects[key].find(p=>p.id===projId);
   if(!proj) return;
-  if(key==='pro' && !unrelUnlocked && !editMode){ pendingUnrel={projId,key}; openUnrelModal(); return; }
   currentProjId=projId;
   currentProjKey=key;
   const content=document.getElementById('modalContent');
@@ -951,27 +911,13 @@ window.addEventListener('load', loadFromStorage);
 </div>
 
 
-<!-- UNRELEASED WORKS PASSWORD MODAL -->
-<div class="pw-modal-bg" id="unrelModalBg">
-  <div class="pw-modal">
-    <div class="pw-modal-title">UNRELEASED WORKS</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">이 섹션은 비공개 작업물입니다.<br>접근 비밀번호를 입력해주세요.</p>
-    <input class="pw-input" id="unrelPwInput" type="password" placeholder="비밀번호" maxlength="30"
-      onkeydown="if(event.key==='Enter')checkUnrelPw()">
-    <button class="pw-submit" onclick="checkUnrelPw()">ENTER</button>
-    <p class="pw-error" id="unrelPwError"></p>
-    <button class="pw-cancel" onclick="closeUnrelModal()">취소</button>
-  </div>
-</div>
-
-
 <!-- WORKS project drag-to-reorder -->
 <script>
 (function(){
   if (window.__projReorderInit) return;
   window.__projReorderInit = true;
   var META_KEY = 'sk_portfolio_meta';
-  var gridToKey = { gridConcept:'concept', gridAI:'ai', gridSb:'sb', gridPro:'pro', gridPersonal:'personal' };
+  var gridToKey = { gridConcept:'concept', gridAI:'ai', gridSb:'sb', gridPersonal:'personal' };
   var dragId = null, dragGrid = null;
 
   function readMeta(){ try { return JSON.parse(localStorage.getItem(META_KEY)) || {}; } catch(e){ return {}; } }
@@ -1113,6 +1059,7 @@ window.addEventListener('load', loadFromStorage);
       return BASE + u.replace(/^\//, '');
     }
     var data = JSON.parse(JSON.stringify(meta));
+    if (data.projects) delete data.projects.pro; // 미공개 작업물은 절대 게시하지 않음
     for (var k in data.projects) { (data.projects[k]||[]).forEach(function(p){ if(p.thumb)p.thumb=toAbs(p.thumb); if(Array.isArray(p.images))p.images=p.images.map(toAbs); }); }
     if (data.sbPanels) { for (var s in data.sbPanels) { (data.sbPanels[s]||[]).forEach(function(it){ if(it&&it.src)it.src=toAbs(it.src); }); } }
     if (data.heroRef) data.heroRef = toAbs(data.heroRef);
