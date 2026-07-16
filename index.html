@@ -461,8 +461,19 @@ async function uploadToGitHub(file, prefix) {
   } catch(e) {}
   const body = { message: 'Add portfolio image: '+name, content: b64, branch: GH_BRANCH };
   if (sha) body.sha = sha;
-  const res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
+  let res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
     { method:'PUT', headers:{ Authorization:'token '+token,'Content-Type':'application/json' }, body:JSON.stringify(body) });
+  // sha 충돌(409/422) 시 최신 sha 다시 받아서 1회 재시도
+  if (!res.ok && (res.status === 409 || res.status === 422)) {
+    await new Promise(r => setTimeout(r, 800));
+    try {
+      const chk2 = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path+'?t='+Date.now(),
+        { headers: { Authorization: 'token '+token }, cache: 'no-store' });
+      if (chk2.ok) { const j2 = await chk2.json(); if (j2.sha) body.sha = j2.sha; }
+    } catch(e) {}
+    res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
+      { method:'PUT', headers:{ Authorization:'token '+token,'Content-Type':'application/json' }, body:JSON.stringify(body) });
+  }
   if (!res.ok) { const e = await res.json(); throw new Error(e.message||'upload failed'); }
   return 'https://'+GH_OWNER+'.github.io/'+path;
 }
@@ -1166,14 +1177,34 @@ window.addEventListener('load', loadFromStorage);
 
   function b64utf8(str){ return btoa(unescape(encodeURIComponent(str))); }
 
+  // 커밋 중복 방지 (한 번에 하나씩만)
+  var _publishing = false;
+  var _publishQueued = false;
+
   async function publishData(){
+    // 이미 게시 중이면 대기열에 표시 후 종료 (끝나고 다시 실행됨)
+    if (_publishing) { _publishQueued = true; return true; }
+    _publishing = true;
+    try {
+      return await _doPublish(0);
+    } finally {
+      _publishing = false;
+      if (_publishQueued) { _publishQueued = false; setTimeout(function(){ publishData(); }, 500); }
+    }
+  }
+
+  async function _doPublish(attempt){
     var token = (typeof ghToken === 'function') ? ghToken() : null;
     if (!token) { alert('⚙ Manage 모드에서 GitHub Token을 먼저 입력해주세요.'); return; }
     var json = buildPublishData();
     var path = 'data.json';
     var sha = '';
     try {
-      var chk = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path, { headers: { Authorization: 'token '+token } });
+      // 캐시 없이 최신 sha 가져오기
+      var chk = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path+'?t='+Date.now(), {
+        headers: { Authorization: 'token '+token },
+        cache: 'no-store'
+      });
       if (chk.ok) { var j = await chk.json(); sha = j.sha || ''; }
     } catch(e){}
     var body = { message: 'Publish portfolio data via site', content: b64utf8(json), branch: GH_BRANCH };
@@ -1183,7 +1214,15 @@ window.addEventListener('load', loadFromStorage);
       headers: { Authorization: 'token '+token, 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    if (!res.ok) { var t = await res.text(); throw new Error('GitHub ' + res.status + ': ' + t.slice(0,120)); }
+    if (!res.ok) {
+      var t = await res.text();
+      // sha 충돌(409/422) 시 최대 3번 자동 재시도
+      if ((res.status === 409 || res.status === 422 || t.indexOf('expected') !== -1) && attempt < 3) {
+        await new Promise(function(r){ setTimeout(r, 800 + attempt * 700); });
+        return _doPublish(attempt + 1);
+      }
+      throw new Error('GitHub ' + res.status + ': ' + t.slice(0,120));
+    }
     return true;
   }
 
