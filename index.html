@@ -450,7 +450,7 @@ async function uploadToGitHub(file, prefix) {
     throw new Error('파일이 너무 큽니다 ('+mb+'MB). 25MB 이하 권장 — 동영상은 압축하거나 YouTube/Vimeo 링크를 이용하세요.');
   }
   const ext  = (file.name||'img').split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
-  const name = prefix + '_' + Date.now() + '.' + ext;
+  const name = prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '.' + ext;
   const path = GH_IMG_DIR + '/' + name;
   const b64  = await fileToB64(file);
   let sha = '';
@@ -464,7 +464,7 @@ async function uploadToGitHub(file, prefix) {
   let res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
     { method:'PUT', headers:{ Authorization:'token '+token,'Content-Type':'application/json' }, body:JSON.stringify(body) });
   // sha 충돌(409/422) 시 최신 sha 다시 받아서 1회 재시도
-  if (!res.ok && (res.status === 409 || res.status === 422)) {
+  if (!res.ok && (res.status === 409 || res.status === 422 || res.status === 500)) {
     await new Promise(r => setTimeout(r, 800));
     try {
       const chk2 = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path+'?t='+Date.now(),
