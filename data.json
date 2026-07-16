@@ -406,15 +406,6 @@
         "tag": "STORYBOARD",
         "desc": "",
         "images": []
-      },
-      {
-        "id": "proj_57",
-        "key": "sb",
-        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_57_1784214512100.jpg",
-        "name": "Unknown Project",
-        "tag": "STORYBOARD",
-        "desc": "",
-        "images": []
       }
     ]
   },
@@ -425,6 +416,6 @@
       }
     ]
   },
-  "projCounter": 57,
+  "projCounter": 56,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg"
 }
