@@ -318,6 +318,15 @@
           "https://saesunshinebucket.github.io/images/gallery_proj_52_0_1782452939481.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_52_1_1782452943992.jpg"
         ]
+      },
+      {
+        "id": "proj_63",
+        "key": "personal",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_63_1784625247653_26rk8c.jpg",
+        "name": "Project 63",
+        "tag": "PERSONAL",
+        "desc": "",
+        "images": []
       }
     ],
     "ai": [
@@ -443,6 +452,6 @@
       }
     ]
   },
-  "projCounter": 62,
+  "projCounter": 63,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg"
 }
