@@ -214,6 +214,10 @@ footer{display:flex;flex-direction:column;align-items:center;gap:14px;padding:48
 
 /* 이미지 도용 방지 */
 img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-drag:none;user-drag:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:auto;}
+.edit-on .modal-img-wrap img,.edit-on .modal-img-wrap video{-webkit-user-drag:element;user-drag:element;}
+.edit-on .modal-img-wrap{cursor:grab;}
+.edit-on .modal-img-wrap.dragging{opacity:.4;outline:2px dashed var(--accent);}
+.edit-on .modal-img-wrap.drag-target{outline:2px solid var(--accent);}
 .proj-card-thumb,.modal-hero,.sb-panel img,.lb img,.modal-img-wrap img{-webkit-touch-callout:none;}
 /* 이미지 위 투명 보호막 (길게 눌러 저장 방지) */
 
@@ -809,6 +813,40 @@ function renderModalGallery(proj){
   proj.images.forEach((imgSrc,i)=>{
     const wrap=document.createElement('div');
     wrap.className='modal-img-wrap';
+    wrap.dataset.idx=i;
+    // ── 재정렬 (MANAGE 모드) ──
+    if(editMode){
+      wrap.draggable=true;
+      wrap.addEventListener('dragstart',function(ev){
+        window.__galleryDragIdx=i;
+        window.__galleryDragging=true;
+        wrap.classList.add('dragging');
+        ev.dataTransfer.effectAllowed='move';
+        try{ev.dataTransfer.setData('text/plain','reorder');}catch(e){}
+      });
+      wrap.addEventListener('dragend',function(){
+        window.__galleryDragging=false;
+        wrap.classList.remove('dragging');
+        document.querySelectorAll('.modal-img-wrap.drag-target').forEach(w=>w.classList.remove('drag-target'));
+      });
+      wrap.addEventListener('dragover',function(ev){
+        if(window.__galleryDragging){ ev.preventDefault(); ev.stopPropagation(); wrap.classList.add('drag-target'); }
+      });
+      wrap.addEventListener('dragleave',function(){ wrap.classList.remove('drag-target'); });
+      wrap.addEventListener('drop',function(ev){
+        if(!window.__galleryDragging) return;
+        ev.preventDefault(); ev.stopPropagation();
+        const from=window.__galleryDragIdx, to=i;
+        window.__galleryDragging=false;
+        if(from===to||from==null) return;
+        const moved=proj.images.splice(from,1)[0];
+        proj.images.splice(to,0,moved);
+        renderModalGallery(proj);
+        renderGrid(currentProjKey);
+        saveToStorage();
+        showStatus('↔️ 순서 변경됨',1500);
+      });
+    }
     if(isVideo(imgSrc)){
       wrap.innerHTML=`
         <span class="modal-vid-badge">▶ VIDEO</span>
@@ -988,6 +1026,8 @@ function dzDrop(e, key){
 
 function dzDropModal(e){
   e.preventDefault();
+  // 내부 재정렬 드래그는 파일 드롭 처리에서 제외
+  if(window.__galleryDragging) return;
   const gallery=document.getElementById('modalGallery');
   if(gallery) gallery.classList.remove('drag-over');
   if(!editMode) return;
@@ -1005,7 +1045,7 @@ function dzDropModal(e){
   })();
 }
 
-function dzOver(e,el){ e.preventDefault(); el.classList.add('drag-over'); }
+function dzOver(e,el){ e.preventDefault(); if(window.__galleryDragging) return; el.classList.add('drag-over'); }
 function dzLeave(el){ el.classList.remove('drag-over'); }
 
 // ─────────────────────────────────────────
@@ -1020,6 +1060,8 @@ function updateCount(){
 // LIGHTBOX
 // ─────────────────────────────────────────
 function openLb(src){
+  // 드래그 재정렬 직후 클릭 무시
+  if(window.__galleryDragging){ return; }
   const lb=document.getElementById('lb');
   const img=document.getElementById('lbImg');
   // 기존 video 제거
@@ -1334,7 +1376,9 @@ window.addEventListener('load', loadFromStorage);
 
   // 이미지 드래그 차단
   document.addEventListener('dragstart', function(e){
-    if (e.target.tagName === 'IMG') { e.preventDefault(); return false; }
+    // MANAGE 모드에서는 재정렬을 위해 드래그 허용
+    if (window.editMode === true || (typeof editMode !== 'undefined' && editMode)) return;
+    if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') { e.preventDefault(); return false; }
   }, false);
 
   // 개발자도구 단축키 일부 차단 (F12, Ctrl+Shift+I/J/C, Ctrl+U)
