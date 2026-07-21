@@ -132,7 +132,7 @@
       {
         "id": "proj_32",
         "key": "concept",
-        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_32_1782181030005.jpg",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_32_r_1784613935727_pzlcmt.jpg",
         "name": "Fly Jiang Su",
         "tag": "CONCEPT",
         "desc": "",
@@ -215,15 +215,6 @@
         "key": "pro",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_36_1782182650018.jpg",
         "name": "Unknown_Project",
-        "tag": "UNRELEASED",
-        "desc": "",
-        "images": []
-      },
-      {
-        "id": "proj_54",
-        "key": "pro",
-        "thumb": "",
-        "name": "Project 54",
         "tag": "UNRELEASED",
         "desc": "",
         "images": []
@@ -399,24 +390,6 @@
         "images": [
           "https://saesunshinebucket.github.io/images/gallery_proj_25_0_1784215291739.mp4"
         ]
-      },
-      {
-        "id": "proj_57",
-        "key": "sb",
-        "thumb": "",
-        "name": "Project 57",
-        "tag": "STORYBOARD",
-        "desc": "",
-        "images": []
-      },
-      {
-        "id": "proj_59",
-        "key": "sb",
-        "thumb": "",
-        "name": "Project 59",
-        "tag": "STORYBOARD",
-        "desc": "",
-        "images": []
       },
       {
         "id": "proj_60",
