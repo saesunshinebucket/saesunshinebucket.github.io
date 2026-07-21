@@ -401,6 +401,7 @@ input[type=file]{display:none;}
 <!-- FILE INPUTS -->
 <input type="file" id="projThumbInput" accept="image/*">
 <input type="file" id="projGalleryInput" accept="image/*,video/*" multiple>
+<input type="file" id="thumbReplaceInput" accept="image/*">
 <input type="file" id="sbPanelInput" accept="image/*" multiple>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
@@ -449,6 +450,12 @@ async function uploadToGitHub(file, prefix) {
     const mb = (file.size/1024/1024).toFixed(1);
     throw new Error('파일이 너무 큽니다 ('+mb+'MB). 25MB 이하 권장 — 동영상은 압축하거나 YouTube/Vimeo 링크를 이용하세요.');
   }
+  // 동영상 코덱 안내 (H.264 mp4 외에는 브라우저 재생이 안 될 수 있음)
+  if (file.type.startsWith('video/') && !/mp4|webm/i.test(file.type)) {
+    if (!confirm('⚠️ 이 동영상 형식('+file.type+')은 브라우저에서 재생이 안 될 수 있습니다.\nH.264 코덱의 MP4 파일을 권장합니다.\n\n그래도 업로드하시겠습니까?')) {
+      throw new Error('업로드 취소됨');
+    }
+  }
   const ext  = (file.name||'img').split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
   const name = prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '.' + ext;
   const path = GH_IMG_DIR + '/' + name;
@@ -480,9 +487,15 @@ async function uploadToGitHub(file, prefix) {
 
 async function deleteFromGitHub(rawUrl) {
   const token = ghToken(); if (!token) return;
-  const m = rawUrl.match(/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/(.+)/);
-  if (!m) return;
-  const path = m[1];
+  // raw.githubusercontent.com 및 github.io 두 형식 모두 지원
+  let path = null;
+  let m = rawUrl.match(/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/(.+?)(\?|$)/);
+  if (m) path = m[1];
+  if (!path) {
+    m = rawUrl.match(/[a-z0-9-]+\.github\.io\/(.+?)(\?|$)/);
+    if (m) path = m[1];
+  }
+  if (!path) return;
   try {
     const chk = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
       { headers: { Authorization: 'token '+token } });
@@ -548,6 +561,10 @@ function applyLoadedData(data) {
   if (data.projCounter) projCounter = data.projCounter;
   if (data.projects)    projects    = data.projects;
   ['concept','ai','sb','pro','personal'].forEach(function(k){ if(!projects[k]) projects[k]=[]; });
+  // 업로드 실패로 썸네일이 빈 유령 프로젝트 자동 정리
+  Object.keys(projects).forEach(function(k){
+    projects[k] = projects[k].filter(function(p){ return p.thumb && p.thumb.indexOf('http') === 0; });
+  });
   if (data.sbPanels)    sbPanels    = data.sbPanels;
   const heroRef = data.heroRef || data.heroSrc || '';
   if (heroRef) {
@@ -771,6 +788,7 @@ function openModal(projId, key){
         <label>DESCRIPTION</label>
         <textarea id="editDesc" oninput="updateProjMeta()">${proj.desc||''}</textarea>
       </div>
+      <button class="proj-add-btn" style="display:flex;aspect-ratio:unset;padding:12px 20px;" onclick="document.getElementById('thumbReplaceInput').click()">🖼 썸네일 교체</button>
       <button class="proj-add-btn" style="display:flex;aspect-ratio:unset;padding:12px 20px;" onclick="document.getElementById('projGalleryInput').click()">+ 이미지 추가</button>
       <button style="padding:12px 20px;background:#ef4444;color:#fff;border:none;border-radius:2px;cursor:pointer;font-size:12px;letter-spacing:1px;" onclick="deleteProject()">프로젝트 삭제</button>
     </div>`;
@@ -821,7 +839,7 @@ function updateProjMeta(){
 function deleteProject(){
   if(!confirm('이 프로젝트를 삭제하시겠습니까?')) return;
   const proj=getProj();
-  if(proj){ [proj.thumb,...(proj.images||[])].forEach(url=>{ if(url&&url.includes('raw.githubusercontent.com')) deleteFromGitHub(url); }); }
+  if(proj){ [proj.thumb,...(proj.images||[])].forEach(url=>{ if(url&&(url.includes('raw.githubusercontent.com')||url.includes('.github.io/'))) deleteFromGitHub(url); }); }
   projects[currentProjKey]=projects[currentProjKey].filter(p=>p.id!==currentProjId);
   renderGrid(currentProjKey);
   updateCount();
@@ -831,7 +849,7 @@ function deleteProject(){
 
 function deleteModalImg(idx){
   const proj=getProj(); if(!proj) return;
-  const url=proj.images[idx]; if(url&&url.includes('raw.githubusercontent.com')) deleteFromGitHub(url);
+  const url=proj.images[idx]; if(url&&(url.includes('raw.githubusercontent.com')||url.includes('.github.io/'))) deleteFromGitHub(url);
   proj.images.splice(idx,1);
   renderModalGallery(proj);
   renderGrid(currentProjKey);
@@ -854,6 +872,41 @@ document.getElementById('projGalleryInput').addEventListener('change', async e=>
   }
   updateCount(); saveToStorage();
 });
+
+// ── 썸네일 교체 ──
+document.getElementById('thumbReplaceInput').addEventListener('change', async e=>{
+  const f = e.target.files[0];
+  e.target.value = ''; // 같은 파일 재선택 가능하도록 초기화
+  if (!f) return;
+  const proj = getProj();
+  if (!proj) { showStatus('❌ 프로젝트를 찾을 수 없습니다', 3000); return; }
+  if (!editMode) { alert('⚙ MANAGE 모드에서만 가능합니다.'); return; }
+
+  const oldThumb = proj.thumb; // 실패 시 복구용
+  showStatus('⬆️ 새 썸네일 업로드 중…');
+  try {
+    // 1) 새 썸네일 먼저 업로드 (성공해야만 다음 진행)
+    const newUrl = await uploadToGitHub(f, 'thumb_' + proj.id + '_r');
+    // 2) 교체
+    proj.thumb = newUrl;
+    // 3) 화면 갱신 — 그리드 카드 + 열려있는 모달의 대표 이미지
+    renderGrid(currentProjKey);
+    const heroImg = document.querySelector('#modalContent .modal-hero');
+    if (heroImg) heroImg.src = newUrl;
+    // 4) 저장 (자동 게시 포함)
+    saveToStorage();
+    // 5) 옛 썸네일 파일은 마지막에 삭제 (교체 성공 후에만)
+    if (oldThumb && (oldThumb.includes('raw.githubusercontent.com') || oldThumb.includes('.github.io/'))) {
+      deleteFromGitHub(oldThumb);
+    }
+    showStatus('✅ 썸네일 교체 완료!', 2000);
+  } catch(err) {
+    // 실패 시 기존 썸네일 유지 (아무것도 안 바뀜)
+    proj.thumb = oldThumb;
+    showStatus('❌ ' + err.message, 4000);
+  }
+});
+
 
 function closeModal(){
   document.getElementById('modalBg').classList.remove('open');
