@@ -792,6 +792,7 @@ function openModal(projId, key){
         <label>DESCRIPTION</label>
         <textarea id="editDesc" oninput="updateProjMeta()">${proj.desc||''}</textarea>
       </div>
+      <button class="proj-add-btn" style="display:flex;aspect-ratio:unset;padding:12px 20px;" onclick="addYouTubeUrl()">🔗 YouTube URL 추가</button>
       <button class="proj-add-btn" style="display:flex;aspect-ratio:unset;padding:12px 20px;" onclick="document.getElementById('thumbReplaceInput').click()">🖼 썸네일 교체</button>
       <button class="proj-add-btn" style="display:flex;aspect-ratio:unset;padding:12px 20px;" onclick="document.getElementById('projGalleryInput').click()">+ 이미지 추가</button>
       <button style="padding:12px 20px;background:#ef4444;color:#fff;border:none;border-radius:2px;cursor:pointer;font-size:12px;letter-spacing:1px;" onclick="deleteProject()">프로젝트 삭제</button>
@@ -802,6 +803,14 @@ function openModal(projId, key){
 }
 
 function isVideo(url){ return /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url); }
+function ytId(url){
+  if(typeof url!=='string') return null;
+  // watch?v=ID / youtu.be/ID / shorts/ID / embed/ID 모두 지원
+  var m = url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{6,20})/);
+  return m ? m[1] : null;
+}
+function isYouTube(url){ return !!ytId(url); }
+function ytThumb(url){ var id=ytId(url); return id ? 'https://img.youtube.com/vi/'+id+'/hqdefault.jpg' : ''; }
 
 function renderModalGallery(proj){
   const gallery=document.getElementById('modalGallery');
@@ -847,7 +856,13 @@ function renderModalGallery(proj){
         showStatus('↔️ 순서 변경됨',1500);
       });
     }
-    if(isVideo(imgSrc)){
+    if(isYouTube(imgSrc)){
+      // YouTube: 그리드에는 썸네일만 (iframe은 드래그 재정렬을 막으므로 라이트박스에서만)
+      wrap.innerHTML=`
+        <span class="modal-vid-badge">▶ YOUTUBE</span>
+        <img src="${ytThumb(imgSrc)}" alt="YouTube" onclick="openLb('${imgSrc}')" style="cursor:pointer;">
+        <button class="modal-img-del" onclick="deleteModalImg(${i})">×</button>`;
+    } else if(isVideo(imgSrc)){
       wrap.innerHTML=`
         <span class="modal-vid-badge">▶ VIDEO</span>
         <video src="${imgSrc}" muted loop playsinline preload="metadata" onclick="openLb('${imgSrc}')" onmouseover="this.play()" onmouseout="this.pause()"></video>
@@ -944,6 +959,26 @@ document.getElementById('thumbReplaceInput').addEventListener('change', async e=
     showStatus('❌ ' + err.message, 4000);
   }
 });
+
+// ── YouTube URL 추가 ──
+function addYouTubeUrl(){
+  const proj = getProj();
+  if(!proj){ showStatus('❌ 프로젝트를 찾을 수 없습니다',3000); return; }
+  if(!editMode){ alert('⚙ MANAGE 모드에서만 가능합니다.'); return; }
+  const url = prompt('YouTube 영상 주소를 붙여넣으세요:\n(watch, youtu.be, shorts 링크 모두 가능)');
+  if(!url) return;
+  const trimmed = url.trim();
+  if(!isYouTube(trimmed)){
+    alert('⚠️ 올바른 YouTube 주소가 아닙니다.\n예: https://www.youtube.com/watch?v=XXXXXXX\n또는 https://youtu.be/XXXXXXX');
+    return;
+  }
+  proj.images.push(trimmed);
+  renderModalGallery(proj);
+  renderGrid(currentProjKey);
+  saveToStorage();
+  showStatus('✅ YouTube 영상 추가됨!',2000);
+}
+
 
 
 function closeModal(){
@@ -1066,6 +1101,18 @@ function openLb(src){
   const img=document.getElementById('lbImg');
   // 기존 video 제거
   const oldVid=document.getElementById('lbVid'); if(oldVid) oldVid.remove();
+  if(isYouTube(src)){
+    img.style.display='none';
+    const fr=document.createElement('iframe');
+    fr.id='lbYt';
+    fr.src='https://www.youtube-nocookie.com/embed/'+ytId(src)+'?autoplay=1&rel=0';
+    fr.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    fr.allowFullscreen=true;
+    fr.style.cssText='width:min(92vw,1100px);aspect-ratio:16/9;border:0;background:#000;';
+    img.parentNode.insertBefore(fr, img.nextSibling);
+    lb.classList.add('open');
+    return;
+  }
   if(isVideo(src)){
     img.style.display='none';
     const v=document.createElement('video');
@@ -1080,6 +1127,7 @@ function openLb(src){
 function closeLb(){
   document.getElementById('lb').classList.remove('open');
   const v=document.getElementById('lbVid'); if(v){ v.pause(); v.remove(); }
+  const yt=document.getElementById('lbYt'); if(yt){ yt.src=''; yt.remove(); } // 소리 잔류 방지
   document.getElementById('lbImg').style.display='block';
 }
 
