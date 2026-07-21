@@ -403,6 +403,15 @@
           "https://saesunshinebucket.github.io/images/gallery_proj_60_drop_0_1784614029779_36lehr.mp4",
           "https://saesunshinebucket.github.io/images/gallery_proj_60_drop_1_1784614189643_6pg5s6.mp4"
         ]
+      },
+      {
+        "id": "proj_61",
+        "key": "sb",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_61_1784615488420_f2f8r1.jpg",
+        "name": "Project 61",
+        "tag": "STORYBOARD",
+        "desc": "",
+        "images": []
       }
     ]
   },
@@ -413,6 +422,6 @@
       }
     ]
   },
-  "projCounter": 60,
+  "projCounter": 61,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg"
 }
