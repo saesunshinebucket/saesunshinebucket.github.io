@@ -364,13 +364,14 @@ input[type=file]{display:none;}
 <!-- CONTACT -->
 <section id="contact">
   <h2 class="contact-title">LET'S<br>BUILD<br>SOMETHING.</h2>
-  <div class="contact-form">
-    <input type="text" placeholder="Name / 이름">
-    <input type="email" placeholder="Email">
-    <textarea placeholder="Tell me about your project… / 프로젝트를 알려주세요"></textarea>
-  </div>
-  <button class="contact-btn" onclick="alert('메시지 전송!\nMessage sent — thank you!')">SEND</button>
-  <p class="contact-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5b283a3e282e35283332353e392e38303e2f1b3c363a323775383436">[email&#160;protected]</a> &nbsp;·&nbsp; Seoul, KR</p>
+  <form class="contact-form" id="contactForm" onsubmit="event.preventDefault();sendContact();">
+    <input type="text" name="name" id="cfName" placeholder="Name / 이름" required>
+    <input type="email" name="email" id="cfEmail" placeholder="Email" required>
+    <textarea name="message" id="cfMessage" placeholder="Tell me about your project… / 프로젝트를 알려주세요" required></textarea>
+  </form>
+  <button class="contact-btn" id="cfSend" onclick="sendContact()">SEND</button>
+  <p id="cfStatus" style="margin-top:16px;font-size:13px;min-height:20px;color:var(--muted);"></p>
+  <p class="contact-email">saesunshinebucket@gmail.com &nbsp;·&nbsp; Seoul, KR</p>
 </section>
 
 <!-- FOOTER -->
@@ -1007,6 +1008,57 @@ function closeModal(){
     downOnBg = (e.target === bg);
   }, {passive:true});
 })();
+
+// ── 연락 폼 전송 (Formspree) ──
+// ⚠️ 아래 FORMSPREE_ID를 본인 것으로 교체하세요 (설정법은 안내 참고)
+const FORMSPREE_ID = 'xqerybar';
+
+async function sendContact(){
+  const name = document.getElementById('cfName').value.trim();
+  const email = document.getElementById('cfEmail').value.trim();
+  const message = document.getElementById('cfMessage').value.trim();
+  const status = document.getElementById('cfStatus');
+  const btn = document.getElementById('cfSend');
+
+  // 입력 검증
+  if(!name || !email || !message){
+    status.textContent = '⚠️ 모든 항목을 입력해주세요.';
+    status.style.color = '#ef4444';
+    return;
+  }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+    status.textContent = '⚠️ 올바른 이메일 주소를 입력해주세요.';
+    status.style.color = '#ef4444';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '전송 중…';
+  status.textContent = '';
+
+  try {
+    const res = await fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, email: email, message: message })
+    });
+    if (res.ok) {
+      status.textContent = '✅ 메시지가 전송되었습니다. 감사합니다! / Message sent — thank you!';
+      status.style.color = 'var(--paper)';
+      document.getElementById('contactForm').reset();
+    } else {
+      const data = await res.json().catch(()=>({}));
+      throw new Error(data.error || '전송 실패 (' + res.status + ')');
+    }
+  } catch(err) {
+    status.textContent = '❌ 전송에 실패했습니다. 이메일로 직접 연락해주세요: saesunshinebucket@gmail.com';
+    status.style.color = '#ef4444';
+    console.warn('Contact form error:', err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'SEND';
+  }
+}
+
 
 // ─────────────────────────────────────────
 // STORYBOARD
