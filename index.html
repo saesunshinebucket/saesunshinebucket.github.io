@@ -276,6 +276,14 @@ input[type=file]{display:none;}
   </div>
 
   <div class="works-cat">
+    <h2 class="works-cat-title">MV · Stage · Artist Visual</h2>
+    <div class="proj-grid drop-zone" id="gridEnt" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'ent')">
+      <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
+      <button class="proj-add-btn" onclick="addProject('ent')">+ ADD PROJECT</button>
+    </div>
+  </div>
+
+  <div class="works-cat">
     <h2 class="works-cat-title">Concept Art</h2>
     <div class="proj-grid drop-zone" id="gridConcept" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'concept')">
       <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
@@ -301,6 +309,7 @@ input[type=file]{display:none;}
 
   <div class="works-cat" id="unrelSection">
     <h2 class="works-cat-title">Unreleased Works <span class="unrel-badge" title="상세 보기는 비밀번호가 필요합니다">🔒</span></h2>
+    <p style="font-size:13px;color:var(--muted);margin:-6px 0 18px;line-height:1.6;">NDA 작업물로 상세 이미지는 비공개입니다. 요청 시 별도 공개 가능합니다. · These works are under NDA — full images available upon request.</p>
     <div class="proj-grid drop-zone" id="gridPro" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'pro')">
       <div class="drop-hint"><span class="drop-hint-text">↓ 이미지를 드래그하여 추가</span></div>
       <button class="proj-add-btn" onclick="addProject('pro')">+ ADD PROJECT</button>
@@ -379,9 +388,10 @@ input[type=file]{display:none;}
 <footer>
   <span class="footer-logo">SAE KIM</span>
   <div class="footer-links">
-    <a href="#" target="_blank">ArtStation</a>
-    <a href="#" target="_blank">Instagram</a>
-    <a href="#" target="_blank">LinkedIn</a>
+    <!-- TODO: 아래 세 링크의 "아이디입력" 부분을 실제 계정 아이디로 바꿔주세요 -->
+    <a href="https://www.artstation.com/아이디입력" target="_blank" rel="noopener">ArtStation</a>
+    <a href="https://www.instagram.com/아이디입력" target="_blank" rel="noopener">Instagram</a>
+    <a href="https://www.linkedin.com/in/아이디입력" target="_blank" rel="noopener">LinkedIn</a>
   </div>
   <span class="footer-copy">© 2026 Sae Kim</span>
 </footer>
@@ -415,7 +425,7 @@ input[type=file]{display:none;}
 // ─────────────────────────────────────────
 let editMode = false;
 let unrelUnlocked = false; let pendingUnrel = null;
-let projects = { concept:[], ai:[], sb:[], pro:[], personal:[] };
+let projects = { ent:[], concept:[], ai:[], sb:[], pro:[], personal:[] };
 let sbPanels = { stripA:[] };
 let currentProjKey = null;
 let currentProjId = null;
@@ -565,7 +575,7 @@ function scheduleAutoPublish() {
 function applyLoadedData(data) {
   if (data.projCounter) projCounter = data.projCounter;
   if (data.projects)    projects    = data.projects;
-  ['concept','ai','sb','pro','personal'].forEach(function(k){ if(!projects[k]) projects[k]=[]; });
+  ['ent','concept','ai','sb','pro','personal'].forEach(function(k){ if(!projects[k]) projects[k]=[]; });
   // 업로드 실패로 썸네일이 빈 유령 프로젝트 자동 정리
   Object.keys(projects).forEach(function(k){
     projects[k] = projects[k].filter(function(p){ return p.thumb && p.thumb.indexOf('http') === 0; });
@@ -577,7 +587,7 @@ function applyLoadedData(data) {
     const ph  = document.getElementById('heroPh');
     img.src = heroRef; img.style.display='block'; ph.style.display='none';
   }
-  renderGrid('concept'); renderGrid('ai'); renderGrid('sb'); renderGrid('pro'); renderGrid('personal');
+  renderGrid('ent'); renderGrid('concept'); renderGrid('ai'); renderGrid('sb'); renderGrid('pro'); renderGrid('personal');
   renderStrip('stripA'); updateCount();
 }
 
@@ -709,7 +719,7 @@ function enterEdit(){
     bar.innerHTML='<span style="font-size:11px;letter-spacing:1px;color:var(--muted);">GitHub Token</span>'
       +'<input id="_ghTok" type="password" placeholder="ghp_..." style="width:180px;padding:6px 10px;background:var(--bg);border:1px solid var(--line);border-radius:2px;font-size:12px;color:var(--paper);outline:none;">'
       +'<button onclick="saveGhToken(document.getElementById(\'_ghTok\').value);this.textContent=\'✓\';" style="padding:6px 12px;background:var(--paper);color:var(--bg);border:none;border-radius:2px;font-size:11px;cursor:pointer;">저장</button>'
-      +'<button onclick="if(confirm(\'깨진 이미지 데이터를 모두 초기화하시겠습니까?\')){localStorage.removeItem(LS_META_KEY);localStorage.removeItem(\'saekim_portfolio\');projects={concept:[],ai:[],pro:[],personal:[]};sbPanels={stripA:[]};projCounter=0;[\'concept\',\'ai\',\'pro\',\'personal\'].forEach(k=>renderGrid(k));renderStrip(\'stripA\');updateCount();showStatus(\'✅ 초기화 완료\',2000);}" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:2px;font-size:11px;cursor:pointer;margin-left:4px;">🗑 초기화</button>';
+      +'<button onclick="if(confirm(\'깨진 이미지 데이터를 모두 초기화하시겠습니까?\')){localStorage.removeItem(LS_META_KEY);localStorage.removeItem(\'saekim_portfolio\');projects={ent:[],concept:[],ai:[],sb:[],pro:[],personal:[]};sbPanels={stripA:[]};projCounter=0;[\'ent\',\'concept\',\'ai\',\'sb\',\'pro\',\'personal\'].forEach(k=>renderGrid(k));renderStrip(\'stripA\');updateCount();showStatus(\'✅ 초기화 완료\',2000);}" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:2px;font-size:11px;cursor:pointer;margin-left:4px;">🗑 초기화</button>';
     document.body.appendChild(bar);
   }
   document.getElementById('_ghTok').value=ghToken();
@@ -743,10 +753,10 @@ document.getElementById('projThumbInput').addEventListener('change', async e=>{
   catch(err){ showStatus('❌ '+err.message,4000); }
 });
 
-function tagFor(k){return k==='concept'?'CONCEPT':k==='ai'?'AI CONCEPT':k==='sb'?'STORYBOARD':k==='pro'?'UNRELEASED':'PERSONAL';}
+function tagFor(k){return k==='ent'?'ENTERTAINMENT':k==='concept'?'CONCEPT':k==='ai'?'AI CONCEPT':k==='sb'?'STORYBOARD':k==='pro'?'UNRELEASED':'PERSONAL';}
 
 function renderGrid(key){
-  const gridId={concept:'gridConcept',ai:'gridAI',sb:'gridSb',pro:'gridPro',personal:'gridPersonal'}[key];
+  const gridId={ent:'gridEnt',concept:'gridConcept',ai:'gridAI',sb:'gridSb',pro:'gridPro',personal:'gridPersonal'}[key];
   const grid=document.getElementById(gridId); if(!grid) return;
   const addBtn=grid.querySelector('.proj-add-btn');
   grid.querySelectorAll('.proj-card').forEach(c=>c.remove());
@@ -1244,7 +1254,7 @@ window.addEventListener('load', loadFromStorage);
   if (window.__projReorderInit) return;
   window.__projReorderInit = true;
   var META_KEY = 'sk_portfolio_meta';
-  var gridToKey = { gridConcept:'concept', gridAI:'ai', gridSb:'sb', gridPro:'pro', gridPersonal:'personal' };
+  var gridToKey = { gridEnt:'ent', gridConcept:'concept', gridAI:'ai', gridSb:'sb', gridPro:'pro', gridPersonal:'personal' };
   var dragId = null, dragGrid = null;
 
   function readMeta(){ try { return JSON.parse(localStorage.getItem(META_KEY)) || {}; } catch(e){ return {}; } }
