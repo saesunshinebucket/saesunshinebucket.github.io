@@ -755,6 +755,26 @@ document.getElementById('projThumbInput').addEventListener('change', async e=>{
 
 function tagFor(k){return k==='ent'?'ENTERTAINMENT':k==='concept'?'CONCEPT':k==='ai'?'AI CONCEPT':k==='sb'?'STORYBOARD':k==='pro'?'UNRELEASED':'PERSONAL';}
 
+// ── 프로젝트 카테고리 간 이동 (드래그 & 드롭) ──
+function moveProject(fromKey, toKey, projId, targetId, before){
+  if(!editMode){ showStatus('⚠️ 카테고리 이동은 MANAGE 모드에서만 가능합니다', 2500); return; }
+  if(fromKey === toKey) return;
+  const arr = projects[fromKey]; if(!arr) return;
+  const idx = arr.findIndex(p => p.id === projId); if(idx === -1) return;
+  const item = arr.splice(idx, 1)[0];
+  item.tag = tagFor(toKey);
+  const dest = projects[toKey] || (projects[toKey] = []);
+  if(targetId){
+    const t = dest.findIndex(p => p.id === targetId);
+    if(t === -1) dest.push(item);
+    else dest.splice(before ? t : t + 1, 0, item);
+  } else {
+    dest.push(item);
+  }
+  renderGrid(fromKey); renderGrid(toKey); updateCount(); saveToStorage();
+  showStatus('✅ 「' + (item.name||'프로젝트') + '」 카테고리 이동 완료', 2200);
+}
+
 function renderGrid(key){
   const gridId={ent:'gridEnt',concept:'gridConcept',ai:'gridAI',sb:'gridSb',pro:'gridPro',personal:'gridPersonal'}[key];
   const grid=document.getElementById(gridId); if(!grid) return;
@@ -1297,7 +1317,7 @@ window.addEventListener('load', loadFromStorage);
           grid.querySelectorAll('.reorder-over-l,.reorder-over-r').forEach(function(c){ c.classList.remove('reorder-over-l','reorder-over-r'); });
         });
         card.addEventListener('dragover', function(e){
-          if (dragId === null || dragGrid !== key) return;
+          if (dragId === null) return;
           e.preventDefault();
           e.stopPropagation();
           e.dataTransfer.dropEffect = 'move';
@@ -1310,14 +1330,19 @@ window.addEventListener('load', loadFromStorage);
           card.classList.remove('reorder-over-l','reorder-over-r');
         });
         card.addEventListener('drop', function(e){
-          if (dragId === null || dragGrid !== key) return;
+          if (dragId === null) return;
           e.preventDefault();
           e.stopPropagation();
           var r = card.getBoundingClientRect();
           var before = (e.clientX - r.left) < r.width / 2;
           var targetId = card.dataset.id;
           card.classList.remove('reorder-over-l','reorder-over-r');
-          if (targetId && targetId !== dragId) reorder(key, dragId, targetId, before);
+          if (dragGrid === key) {
+            if (targetId && targetId !== dragId) reorder(key, dragId, targetId, before);
+          } else if (typeof moveProject === 'function') {
+            // 다른 카테고리에서 온 카드 → 이 위치로 이동
+            moveProject(dragGrid, key, dragId, targetId, before);
+          }
         });
       });
     });
@@ -1334,7 +1359,17 @@ window.addEventListener('load', loadFromStorage);
     var mo = new MutationObserver(function(){ requestAnimationFrame(decorate); });
     Object.keys(gridToKey).forEach(function(gid){
       var g = document.getElementById(gid);
-      if (g) mo.observe(g, { childList: true });
+      if (!g) return;
+      mo.observe(g, { childList: true });
+      // 그리드 빈 공간에 드롭 → 해당 카테고리 맨 뒤로 이동
+      g.addEventListener('drop', function(e){
+        if (dragId === null) return;
+        var key = gridToKey[gid];
+        if (dragGrid === key) return;
+        e.preventDefault();
+        g.classList.remove('drag-over');
+        if (typeof moveProject === 'function') moveProject(dragGrid, key, dragId, null, false);
+      });
     });
   }
 
