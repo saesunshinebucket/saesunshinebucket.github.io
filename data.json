@@ -206,6 +206,23 @@
         "tag": "UNRELEASED",
         "desc": "",
         "images": []
+      },
+      {
+        "id": "proj_50",
+        "key": "personal",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_50_1782444938362.jpg",
+        "name": "FRG",
+        "tag": "UNRELEASED",
+        "desc": "",
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_0_1782444970976.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_1_1782444975678.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_2_1782444980740.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_3_1782444997162.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_4_1782445004965.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_5_1782445011008.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_6_1782445015716.jpg"
+        ]
       }
     ],
     "personal": [
@@ -233,23 +250,6 @@
           "https://saesunshinebucket.github.io/images/gallery_proj_37_13_1782298989903.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_37_14_1782298999108.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_37_15_1782299008015.jpg"
-        ]
-      },
-      {
-        "id": "proj_50",
-        "key": "personal",
-        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_50_1782444938362.jpg",
-        "name": "FRG",
-        "tag": "PERSONAL",
-        "desc": "",
-        "images": [
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_0_1782444970976.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_1_1782444975678.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_2_1782444980740.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_3_1782444997162.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_4_1782445004965.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_5_1782445011008.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_6_1782445015716.jpg"
         ]
       },
       {
