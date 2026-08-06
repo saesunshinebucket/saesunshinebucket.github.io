@@ -475,29 +475,83 @@ async function uploadToGitHub(file, prefix) {
   const name = prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,8) + '.' + ext;
   const path = GH_IMG_DIR + '/' + name;
   const b64  = await fileToB64(file);
-  let sha = '';
-  try {
-    const chk = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
-      { headers: { Authorization: 'token '+token } });
-    if (chk.ok) { const j = await chk.json(); sha = j.sha||''; }
-  } catch(e) {}
-  const body = { message: 'Add portfolio image: '+name, content: b64, branch: GH_BRANCH };
-  if (sha) body.sha = sha;
-  let res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
-    { method:'PUT', headers:{ Authorization:'token '+token,'Content-Type':'application/json' }, body:JSON.stringify(body) });
-  // sha 충돌(409/422) 시 최신 sha 다시 받아서 1회 재시도
-  if (!res.ok && (res.status === 409 || res.status === 422 || res.status === 500)) {
-    await new Promise(r => setTimeout(r, 800));
-    try {
-      const chk2 = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path+'?t='+Date.now(),
-        { headers: { Authorization: 'token '+token }, cache: 'no-store' });
-      if (chk2.ok) { const j2 = await chk2.json(); if (j2.sha) body.sha = j2.sha; }
-    } catch(e) {}
-    res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,
-      { method:'PUT', headers:{ Authorization:'token '+token,'Content-Type':'application/json' }, body:JSON.stringify(body) });
+  // 배치 큐에 넣고 대기 — 짧은 시간 안에 들어온 파일들은 커밋 1개로 묶여 올라감
+  return new Promise(function(resolve, reject){
+    _upQueue.push({ path: path, b64: b64, resolve: resolve, reject: reject });
+    window.__uploadQueueBusy = true;
+    if (_upTimer) clearTimeout(_upTimer);
+    _upTimer = setTimeout(flushUploadQueue, 700);
+  });
+}
+
+// ── 배치 업로드 엔진: 여러 파일 → Git Data API로 커밋 1개 ──
+// (파일마다 커밋하면 GitHub Pages 배포가 건마다 발생해 시간당 제한에 걸림)
+let _upQueue = [], _upTimer = null, _upFlushing = false;
+
+async function _ghApi(method, url, token, body){
+  const res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+url, {
+    method: method,
+    headers: { Authorization: 'token '+token, 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res.ok) {
+    let msg = ''; try { msg = (await res.json()).message || ''; } catch(e){}
+    const err = new Error('GitHub '+res.status+(msg?': '+msg:''));
+    err.status = res.status;
+    throw err;
   }
-  if (!res.ok) { const e = await res.json(); throw new Error(e.message||'upload failed'); }
-  return 'https://'+GH_OWNER+'.github.io/'+path;
+  return res.json();
+}
+
+async function flushUploadQueue(){
+  if (_upFlushing) { _upTimer = setTimeout(flushUploadQueue, 500); return; }
+  const batch = _upQueue.splice(0, _upQueue.length);
+  if (!batch.length) { window.__uploadQueueBusy = false; return; }
+  _upFlushing = true;
+  const token = ghToken();
+  try {
+    showStatus('⬆️ '+batch.length+'개 파일 업로드 중…');
+    // 1) 각 파일을 blob으로 업로드 (blob은 커밋/배포를 발생시키지 않음) — 동시 3개씩
+    for (let i = 0; i < batch.length; i += 3) {
+      await Promise.all(batch.slice(i, i+3).map(async function(item){
+        const blob = await _ghApi('POST', '/git/blobs', token, { content: item.b64, encoding: 'base64' });
+        item.blobSha = blob.sha;
+      }));
+    }
+    // 2) 트리 + 커밋 1개 생성 후 브랜치 갱신 (다른 커밋과 충돌 시 최대 3회 재시도)
+    let committed = false, lastErr = null;
+    for (let attempt = 0; attempt < 3 && !committed; attempt++) {
+      try {
+        const ref    = await _ghApi('GET', '/git/ref/heads/'+GH_BRANCH+'?t='+Date.now(), token);
+        const parent = ref.object.sha;
+        const base   = await _ghApi('GET', '/git/commits/'+parent, token);
+        const tree   = await _ghApi('POST', '/git/trees', token, {
+          base_tree: base.tree.sha,
+          tree: batch.map(function(it){ return { path: it.path, mode: '100644', type: 'blob', sha: it.blobSha }; })
+        });
+        const commit = await _ghApi('POST', '/git/commits', token, {
+          message: 'Add '+batch.length+' portfolio file(s)',
+          tree: tree.sha,
+          parents: [parent]
+        });
+        await _ghApi('PATCH', '/git/refs/heads/'+GH_BRANCH, token, { sha: commit.sha });
+        committed = true;
+      } catch(e) {
+        lastErr = e;
+        if (e.status === 409 || e.status === 422) { await new Promise(function(r){ setTimeout(r, 900 + attempt*700); }); }
+        else { throw e; }
+      }
+    }
+    if (!committed) throw (lastErr || new Error('commit failed'));
+    batch.forEach(function(it){ it.resolve('https://'+GH_OWNER+'.github.io/'+it.path); });
+  } catch(e) {
+    batch.forEach(function(it){ it.reject(e); });
+  } finally {
+    _upFlushing = false;
+    window.__uploadQueueBusy = _upQueue.length > 0;
+    if (_upQueue.length) _upTimer = setTimeout(flushUploadQueue, 300);
+  }
 }
 
 async function deleteFromGitHub(rawUrl) {
@@ -563,7 +617,9 @@ let _autoPubTimer = null;
 function scheduleAutoPublish() {
   if (typeof ghToken !== 'function' || !ghToken()) return; // 토큰 있을 때만
   if (_autoPubTimer) clearTimeout(_autoPubTimer);
-  _autoPubTimer = setTimeout(function(){
+  _autoPubTimer = setTimeout(function tryPublish(){
+    // 업로드가 아직 진행 중이면 끝날 때까지 기다렸다가 한 번만 게시
+    if (window.__uploadQueueBusy) { _autoPubTimer = setTimeout(tryPublish, 2000); return; }
     if (window.__autoPublish) {
       window.__autoPublish().then(function(){
         if (typeof showStatus === 'function') showStatus('☁️ 자동 게시 완료', 2000);
@@ -947,13 +1003,14 @@ function getProj(){
 document.getElementById('projGalleryInput').addEventListener('change', async e=>{
   const proj=getProj(); if(!proj) return;
   const files=[...e.target.files]; e.target.value='';
-  for(const f of files){
+  // 모든 파일을 동시에 큐에 넣어 커밋 1개로 묶어 올림
+  await Promise.allSettled(files.map(async f=>{
     const idx=proj.images.push(tempUrl(f))-1;
     renderModalGallery(proj); renderGrid(currentProjKey);
     showStatus('⬆️ 업로드 중…');
-    try { proj.images[idx]=await uploadToGitHub(f,'gallery_'+proj.id+'_'+idx); renderModalGallery(proj); renderGrid(currentProjKey); saveToStorage(); showStatus('✅ 완료!',2000); }
+    try { proj.images[idx]=await uploadToGitHub(f,'gallery_'+proj.id+'_'+idx); renderModalGallery(proj); renderGrid(currentProjKey); showStatus('✅ 완료!',2000); }
     catch(err){ showStatus('❌ '+err.message,4000); }
-  }
+  }));
   updateCount(); saveToStorage();
 });
 
@@ -1100,13 +1157,14 @@ function addSbPanel(stripId){
 document.getElementById('sbPanelInput').addEventListener('change', async e=>{
   if(!currentSbStrip) return;
   const files=[...e.target.files]; e.target.value='';
-  for(const f of files){
+  await Promise.allSettled(files.map(async f=>{
     const idx=sbPanels[currentSbStrip].push({src:tempUrl(f)})-1;
     renderStrip(currentSbStrip);
     showStatus('⬆️ 패널 업로드 중…');
-    try { sbPanels[currentSbStrip][idx].src=await uploadToGitHub(f,'sb_'+currentSbStrip+'_'+idx); renderStrip(currentSbStrip); saveToStorage(); showStatus('✅ 완료!',2000); }
+    try { sbPanels[currentSbStrip][idx].src=await uploadToGitHub(f,'sb_'+currentSbStrip+'_'+idx); renderStrip(currentSbStrip); showStatus('✅ 완료!',2000); }
     catch(err){ showStatus('❌ '+err.message,4000); }
-  }
+  }));
+  saveToStorage();
 });
 
 function renderStrip(stripId){
@@ -1134,13 +1192,14 @@ function dzDropSb(e, stripId){
   const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
   if(!files.length) return;
   (async()=>{
-    for(const f of files){
+    await Promise.allSettled(files.map(async f=>{
       const idx=sbPanels[stripId].push({src:tempUrl(f)})-1;
       renderStrip(stripId);
       showStatus('⬆️ 업로드 중…');
-      try { sbPanels[stripId][idx].src=await uploadToGitHub(f,'sb_'+stripId+'_'+idx); renderStrip(stripId); saveToStorage(); showStatus('✅ 완료!',2000); }
+      try { sbPanels[stripId][idx].src=await uploadToGitHub(f,'sb_'+stripId+'_'+idx); renderStrip(stripId); showStatus('✅ 완료!',2000); }
       catch(err){ showStatus('❌ '+err.message,4000); }
-    }
+    }));
+    saveToStorage();
   })();
 }
 
@@ -1152,14 +1211,15 @@ function dzDrop(e, key){
   const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
   if(!files.length) return;
   (async()=>{
-    for(const f of files){
+    await Promise.allSettled(files.map(async f=>{
       projCounter++; const id='proj_'+projCounter;
       const proj={id,key,thumb:tempUrl(f),name:'Project '+projCounter,tag:tagFor(key),desc:'',images:[]};
       projects[key].push(proj); renderGrid(key); updateCount();
       showStatus('⬆️ 업로드 중…');
-      try { proj.thumb=await uploadToGitHub(f,'thumb_'+id); renderGrid(key); saveToStorage(); showStatus('✅ 완료!',2000); }
+      try { proj.thumb=await uploadToGitHub(f,'thumb_'+id); renderGrid(key); showStatus('✅ 완료!',2000); }
       catch(err){ showStatus('❌ '+err.message,4000); }
-    }
+    }));
+    saveToStorage();
   })();
 }
 
@@ -1174,13 +1234,14 @@ function dzDropModal(e){
   const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')||f.type.startsWith('video/'));
   if(!files.length) return;
   (async()=>{
-    for(const f of files){
+    await Promise.allSettled(files.map(async f=>{
       const idx=proj.images.push(tempUrl(f))-1;
       renderModalGallery(proj); renderGrid(currentProjKey);
       showStatus('⬆️ 업로드 중…');
-      try { proj.images[idx]=await uploadToGitHub(f,'gallery_'+proj.id+'_drop_'+idx); renderModalGallery(proj); renderGrid(currentProjKey); saveToStorage(); showStatus('✅ 완료!',2000); }
+      try { proj.images[idx]=await uploadToGitHub(f,'gallery_'+proj.id+'_drop_'+idx); renderModalGallery(proj); renderGrid(currentProjKey); showStatus('✅ 완료!',2000); }
       catch(err){ showStatus('❌ '+err.message,4000); }
-    }
+    }));
+    saveToStorage();
   })();
 }
 
