@@ -236,15 +236,6 @@
         ]
       },
       {
-        "id": "proj_48",
-        "key": "personal",
-        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_48_1782299365160.jpg",
-        "name": "Present",
-        "tag": "PERSONAL",
-        "desc": "",
-        "images": []
-      },
-      {
         "id": "proj_52",
         "key": "personal",
         "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_52_1782452925516.jpg",
@@ -266,6 +257,15 @@
         "images": [
           "https://saesunshinebucket.github.io/images/gallery_proj_63_0_1784625272315_rf01i1.jpg"
         ]
+      },
+      {
+        "id": "proj_48",
+        "key": "personal",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_48_1782299365160.jpg",
+        "name": "Present",
+        "tag": "PERSONAL",
+        "desc": "",
+        "images": []
       }
     ],
     "ai": [
@@ -390,15 +390,7 @@
         "name": "FRG",
         "tag": "STORYBOARD",
         "desc": "",
-        "images": [
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_0_1782444970976.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_1_1782444975678.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_2_1782444980740.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_3_1782444997162.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_4_1782445004965.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_5_1782445011008.jpg",
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_6_1782445015716.jpg"
-        ]
+        "images": []
       }
     ],
     "ent": [
