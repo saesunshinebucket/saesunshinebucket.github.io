@@ -552,7 +552,7 @@ async function saveToStorage() {
     for (const k of Object.keys(sbPanels)) {
       saveSb[k] = sbPanels[k].filter(p => p.src && p.src.startsWith('http'));
     }
-    localStorage.setItem(LS_META_KEY, JSON.stringify({ projects:saveProjects, sbPanels:saveSb, projCounter, heroRef }));
+    localStorage.setItem(LS_META_KEY, JSON.stringify({ projects:saveProjects, sbPanels:saveSb, projCounter, heroRef, savedAt: Date.now() }));
   } catch(e) { console.warn('저장 오류:',e); }
   // 자동 게시 (핸드폰·모든 방문자에 반영) — 게시 과정 중 재호출이면 건너뜀 (무한루프 방지)
   if (!window.__inPublishFlow) scheduleAutoPublish();
@@ -1390,15 +1390,25 @@ window.addEventListener('load', loadFromStorage);
   }
   function loadShared(){
     try {
-      var rendered = document.querySelectorAll('.proj-card').length;
-      if (hasLocalData() && rendered > 0) return; // owner with saved data: keep their version
+      // 항상 서버의 최신 data.json을 확인한다 (기기별 localStorage가 오래됐을 수 있음)
       fetch('data.json?nocache=' + Date.now() + '_' + Math.random().toString(36).slice(2), {
         cache: 'no-store',
         headers: { 'Cache-Control': 'no-cache, no-store', 'Pragma': 'no-cache' }
       })
         .then(function(r){ return r.ok ? r.json() : null; })
         .then(function(data){
-          if (data && typeof applyLoadedData === 'function') applyLoadedData(data);
+          if (!data || typeof applyLoadedData !== 'function') return;
+          if (window.editMode === true || (typeof editMode !== 'undefined' && editMode)) return; // 편집 중엔 덮어쓰지 않음
+          var localSavedAt = 0;
+          try {
+            var m = JSON.parse(localStorage.getItem('sk_portfolio_meta') || 'null');
+            localSavedAt = (m && m.savedAt) || 0;
+          } catch(e){}
+          var remoteSavedAt = data.savedAt || 0;
+          var rendered = document.querySelectorAll('.proj-card').length;
+          // 서버 게시본이 로컬 저장본과 같거나 더 새로우면 서버 기준으로 표시.
+          // (아직 게시 안 된 로컬 편집본이 더 새로우면 로컬 유지)
+          if (!localSavedAt || remoteSavedAt >= localSavedAt || rendered === 0) applyLoadedData(data);
         })
         .catch(function(e){ console.warn('data.json load failed', e); });
     } catch(e){ console.warn(e); }
