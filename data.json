@@ -391,7 +391,8 @@
         "tag": "STORYBOARD",
         "desc": "",
         "images": [
-          "https://saesunshinebucket.github.io/images/gallery_proj_50_drop_0_1786063103994_rjx72e.jpg"
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_drop_0_1786063103994_rjx72e.jpg",
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_drop_1_1786063124629_mx6hpv.png"
         ]
       }
     ],
@@ -452,5 +453,5 @@
   },
   "projCounter": 63,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg",
-  "savedAt": 1786063113459
+  "savedAt": 1786063137153
 }
