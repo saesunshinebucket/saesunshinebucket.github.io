@@ -390,7 +390,9 @@
         "name": "FRG",
         "tag": "STORYBOARD",
         "desc": "",
-        "images": []
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_50_drop_0_1786063895431_1r8kqt.jpg"
+        ]
       }
     ],
     "ent": [
@@ -450,5 +452,5 @@
   },
   "projCounter": 63,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg",
-  "savedAt": 1786063422581
+  "savedAt": 1786063904939
 }
