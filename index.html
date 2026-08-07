@@ -546,7 +546,20 @@ async function flushUploadQueue(){
     if (!committed) throw (lastErr || new Error('commit failed'));
     batch.forEach(function(it){ it.resolve('https://'+GH_OWNER+'.github.io/'+it.path); });
   } catch(e) {
-    batch.forEach(function(it){ it.reject(e); });
+    // 배치 커밋 실패(토큰 권한 등) 시 → 예전 방식(파일별 Contents API)으로 자동 폴백
+    console.warn('배치 업로드 실패, 개별 업로드로 전환:', e);
+    showStatus('⚠️ 배치 실패 — 개별 업로드로 재시도 중…');
+    for (const it of batch) {
+      try {
+        const res = await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+it.path, {
+          method: 'PUT',
+          headers: { Authorization: 'token '+token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'Add portfolio image: '+it.path.split('/').pop(), content: it.b64, branch: GH_BRANCH })
+        });
+        if (!res.ok) { let m=''; try{ m=(await res.json()).message||''; }catch(_){} throw new Error('GitHub '+res.status+(m?': '+m:'')); }
+        it.resolve('https://'+GH_OWNER+'.github.io/'+it.path);
+      } catch(e2) { it.reject(e2); }
+    }
   } finally {
     _upFlushing = false;
     window.__uploadQueueBusy = _upQueue.length > 0;
@@ -772,7 +785,8 @@ function enterEdit(){
   if(!bar){
     bar=document.createElement('div'); bar.id='_ghBar';
     bar.style.cssText='position:fixed;bottom:68px;right:24px;z-index:600;background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:10px 14px;display:flex;align-items:center;gap:8px;backdrop-filter:blur(8px);';
-    bar.innerHTML='<span style="font-size:11px;letter-spacing:1px;color:var(--muted);">GitHub Token</span>'
+    bar.innerHTML='<span style="font-size:10px;color:var(--muted);opacity:.6;" title="사이트 코드 버전 — 오래된 캐시로 접속 중인지 확인용">v0807</span>'
+      +'<span style="font-size:11px;letter-spacing:1px;color:var(--muted);">GitHub Token</span>'
       +'<input id="_ghTok" type="password" placeholder="ghp_..." style="width:180px;padding:6px 10px;background:var(--bg);border:1px solid var(--line);border-radius:2px;font-size:12px;color:var(--paper);outline:none;">'
       +'<button onclick="saveGhToken(document.getElementById(\'_ghTok\').value);this.textContent=\'✓\';" style="padding:6px 12px;background:var(--paper);color:var(--bg);border:none;border-radius:2px;font-size:11px;cursor:pointer;">저장</button>'
       +'<button onclick="if(confirm(\'깨진 이미지 데이터를 모두 초기화하시겠습니까?\')){localStorage.removeItem(LS_META_KEY);localStorage.removeItem(\'saekim_portfolio\');projects={ent:[],concept:[],ai:[],sb:[],pro:[],personal:[]};sbPanels={stripA:[]};projCounter=0;[\'ent\',\'concept\',\'ai\',\'sb\',\'pro\',\'personal\'].forEach(k=>renderGrid(k));renderStrip(\'stripA\');updateCount();showStatus(\'✅ 초기화 완료\',2000);}" style="padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:2px;font-size:11px;cursor:pointer;margin-left:4px;">🗑 초기화</button>';
@@ -1465,7 +1479,7 @@ window.addEventListener('load', loadFromStorage);
             var m = JSON.parse(localStorage.getItem('sk_portfolio_meta') || 'null');
             localSavedAt = (m && m.savedAt) || 0;
           } catch(e){}
-          var remoteSavedAt = data.savedAt || 0;
+          var remoteSavedAt = Math.max(data.savedAt || 0, data.publishedAt || 0);
           var rendered = document.querySelectorAll('.proj-card').length;
           // 서버 게시본이 로컬 저장본과 같거나 더 새로우면 서버 기준으로 표시.
           // (아직 게시 안 된 로컬 편집본이 더 새로우면 로컬 유지)
@@ -1511,7 +1525,20 @@ window.addEventListener('load', loadFromStorage);
     for (var k in data.projects) { (data.projects[k]||[]).forEach(function(p){ if(p.thumb)p.thumb=toAbs(p.thumb); if(Array.isArray(p.images))p.images=p.images.map(toAbs); }); }
     if (data.sbPanels) { for (var s in data.sbPanels) { (data.sbPanels[s]||[]).forEach(function(it){ if(it&&it.src)it.src=toAbs(it.src); }); } }
     if (data.heroRef) data.heroRef = toAbs(data.heroRef);
+    if (!data.savedAt) data.savedAt = Date.now();
+    data.publishedAt = Date.now();
     return JSON.stringify(data, null, 2);
+  }
+
+  // 게시 데이터의 전체 이미지 수 (안전장치용)
+  function countMedia(d){
+    var n = 0;
+    try {
+      for (var k in (d.projects||{})) (d.projects[k]||[]).forEach(function(p){
+        n += (p.images||[]).length + ((p.thumb||'').indexOf('http')===0 ? 1 : 0);
+      });
+    } catch(e){}
+    return n;
   }
 
   function b64utf8(str){ return btoa(unescape(encodeURIComponent(str))); }
@@ -1536,6 +1563,23 @@ window.addEventListener('load', loadFromStorage);
     var token = (typeof ghToken === 'function') ? ghToken() : null;
     if (!token) { alert('⚙ Manage 모드에서 GitHub Token을 먼저 입력해주세요.'); return; }
     var json = buildPublishData();
+    // ── 안전장치: 서버 게시본보다 이미지가 크게 줄어들면 확인 후 게시 ──
+    // (오래된 기기·캐시된 옛 코드에서 게시하면 최근 작업이 지워지는 사고 방지)
+    try {
+      var liveRes = await fetch('https://'+GH_OWNER+'.github.io/data.json?nocache='+Date.now(), { cache: 'no-store' });
+      if (liveRes.ok) {
+        var liveData = await liveRes.json();
+        var newData  = JSON.parse(json);
+        var liveN = countMedia(liveData), newN = countMedia(newData);
+        if (newN < liveN - 2) {
+          var okGo = confirm('⚠️ 게시하려는 데이터가 현재 사이트보다 이미지가 '+(liveN-newN)+'개 적습니다.\n이 기기의 데이터가 오래됐을 수 있고, 게시하면 최근 작업이 사라질 수 있습니다.\n\n계속 게시할까요?\n(취소 후 페이지를 새로고침하면 최신 데이터를 불러옵니다)');
+          if (!okGo) {
+            if (typeof showStatus === 'function') showStatus('⏸ 게시 취소됨 — 새로고침으로 최신 데이터를 불러오세요', 5000);
+            return true;
+          }
+        }
+      }
+    } catch(e){ console.warn('게시 안전장치 확인 실패(게시는 계속):', e); }
     var path = 'data.json';
     var sha = '';
     try {
