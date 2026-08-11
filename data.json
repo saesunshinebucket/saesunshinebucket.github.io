@@ -266,6 +266,15 @@
         "tag": "PERSONAL",
         "desc": "",
         "images": []
+      },
+      {
+        "id": "proj_66",
+        "key": "personal",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_66_1786420590046_dpbty3.jpg",
+        "name": "Project 66",
+        "tag": "PERSONAL",
+        "desc": "",
+        "images": []
       }
     ],
     "ai": [
@@ -448,8 +457,8 @@
       }
     ]
   },
-  "projCounter": 63,
+  "projCounter": 66,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg",
-  "savedAt": 1786066024978,
-  "publishedAt": 1786066024978
+  "savedAt": 1786420598523,
+  "publishedAt": 1786420598524
 }
