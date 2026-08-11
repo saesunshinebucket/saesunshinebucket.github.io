@@ -274,7 +274,11 @@
         "name": "2022_Graphic T Shirt design",
         "tag": "PERSONAL",
         "desc": "",
-        "images": []
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_66_drop_0_1786420651742_1sdqc9.png",
+          "https://saesunshinebucket.github.io/images/gallery_proj_66_drop_1_1786420654604_wjhero.png",
+          "https://saesunshinebucket.github.io/images/gallery_proj_66_drop_2_1786420658778_voi9jp.png"
+        ]
       }
     ],
     "ai": [
@@ -459,6 +463,6 @@
   },
   "projCounter": 66,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg",
-  "savedAt": 1786420644585,
-  "publishedAt": 1786420644585
+  "savedAt": 1786420672435,
+  "publishedAt": 1786420672436
 }
