@@ -290,7 +290,10 @@
         "name": "Project 67",
         "tag": "PERSONAL",
         "desc": "",
-        "images": []
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_67_drop_0_1786423804974_7iaggl.png",
+          "https://saesunshinebucket.github.io/images/gallery_proj_67_drop_1_1786423807576_n8o6rc.png"
+        ]
       }
     ],
     "ai": [
@@ -499,6 +502,6 @@
   },
   "projCounter": 67,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg",
-  "savedAt": 1786423815526,
-  "publishedAt": 1786423815527
+  "savedAt": 1786423818764,
+  "publishedAt": 1786423818765
 }
