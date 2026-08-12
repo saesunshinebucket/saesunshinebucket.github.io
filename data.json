@@ -491,6 +491,15 @@
           "https://saesunshinebucket.github.io/images/gallery_proj_53_3_1783425614757.jpg",
           "https://saesunshinebucket.github.io/images/gallery_proj_53_4_1783425618386.jpg"
         ]
+      },
+      {
+        "id": "proj_68",
+        "key": "ent",
+        "thumb": "https://saesunshinebucket.github.io/images/thumb_proj_68_1786536482602_p7n4a2.jpg",
+        "name": "Project 68",
+        "tag": "ENTERTAINMENT",
+        "desc": "",
+        "images": []
       }
     ]
   },
@@ -501,8 +510,8 @@
       }
     ]
   },
-  "projCounter": 67,
+  "projCounter": 68,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg",
-  "savedAt": 1786521997419,
-  "publishedAt": 1786521997420
+  "savedAt": 1786536491818,
+  "publishedAt": 1786536491818
 }
