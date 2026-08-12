@@ -499,7 +499,9 @@
         "name": "BATTLE SINGER",
         "tag": "ENTERTAINMENT",
         "desc": "",
-        "images": []
+        "images": [
+          "https://saesunshinebucket.github.io/images/gallery_proj_68_drop_0_1786536540082_xxodyh.jpg"
+        ]
       }
     ]
   },
@@ -512,6 +514,6 @@
   },
   "projCounter": 68,
   "heroRef": "https://saesunshinebucket.github.io/images/hero_1782117759423.jpg",
-  "savedAt": 1786536531297,
-  "publishedAt": 1786536531298
+  "savedAt": 1786536551256,
+  "publishedAt": 1786536551257
 }
