@@ -786,6 +786,8 @@ function checkPw(){
 }
 function enterEdit(){
   editMode=true;
+  // 이 브라우저는 '관리자 기기'로 표시 — 방문자 집계에서 제외됨
+  try { localStorage.setItem('sk_owner_device','1'); } catch(e){}
   document.body.classList.add('edit-on');
   const btn=document.getElementById('manageBtn');
   btn.textContent='✓ DONE'; btn.classList.add('on');
@@ -802,6 +804,7 @@ function enterEdit(){
   }
   document.getElementById('_ghTok').value=ghToken();
   bar.style.display='flex';
+  showStatsPanel();
 }
 function exitEdit(){
   editMode=false;
@@ -809,6 +812,75 @@ function exitEdit(){
   const btn=document.getElementById('manageBtn');
   btn.textContent='⚙ MANAGE'; btn.classList.remove('on');
   const bar=document.getElementById('_ghBar'); if(bar) bar.style.display='none';
+  const sp=document.getElementById('_statsPanel'); if(sp) sp.style.display='none';
+}
+
+// ─────────────────────────────────────────
+// 방문자 통계 패널 (MANAGE 모드에서만 표시)
+// ─────────────────────────────────────────
+function _gcBase(){
+  var code = (window.GOATCOUNTER_CODE_PUBLIC || '');
+  return code ? 'https://' + code + '.goatcounter.com' : '';
+}
+
+// 사이트 전체 집계 경로를 찾음 (TOTAL → 홈경로 순으로 시도)
+async function _gcFetch(range){
+  var base = _gcBase(); if(!base) return null;
+  var qs = range ? ('?start=' + range) : '';
+  var paths = ['/counter/TOTAL.json', '/counter//.json'];
+  for (var i=0;i<paths.length;i++){
+    try {
+      var r = await fetch(base + paths[i] + qs, { cache:'no-store' });
+      if (r.ok) {
+        var j = await r.json();
+        if (j && (j.count !== undefined)) return j;
+      }
+    } catch(e){ /* CORS·네트워크 실패 → 다음 후보 */ }
+  }
+  return null;
+}
+
+async function showStatsPanel(){
+  var base = _gcBase();
+  var p = document.getElementById('_statsPanel');
+  if(!p){
+    p = document.createElement('div');
+    p.id = '_statsPanel';
+    p.style.cssText = 'position:fixed;bottom:126px;right:24px;z-index:600;background:var(--bg2);border:1px solid var(--line);border-radius:2px;padding:14px 18px;min-width:260px;backdrop-filter:blur(8px);font-size:12px;color:var(--paper);';
+    document.body.appendChild(p);
+  }
+  p.style.display = 'block';
+
+  if(!base){
+    p.innerHTML = '<div style="color:var(--muted);">방문자 집계 코드가 설정되지 않았습니다.</div>';
+    return;
+  }
+  p.innerHTML = '<div style="font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;">VISITORS</div>'
+    + '<div style="color:var(--muted);">불러오는 중…</div>';
+
+  var res = await Promise.all([_gcFetch(''), _gcFetch('week'), _gcFetch('month')]);
+  var all = res[0], wk = res[1], mo = res[2];
+
+  if(!all && !wk && !mo){
+    p.innerHTML = '<div style="font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;">VISITORS</div>'
+      + '<div style="color:var(--muted);line-height:1.6;">아직 데이터를 불러올 수 없습니다.<br>GoatCounter → Settings 에서<br>“Allow adding visitor counts on your website”<br>를 켜주세요.</div>'
+      + '<a href="' + base + '" target="_blank" rel="noopener" style="display:inline-block;margin-top:10px;color:var(--accent);font-size:11px;">통계 페이지 열기 ↗</a>';
+    return;
+  }
+
+  function row(label, d){
+    if(!d) return '';
+    var uniq = (d.count_unique !== undefined && d.count_unique !== null) ? d.count_unique : '–';
+    return '<div style="display:flex;justify-content:space-between;gap:18px;padding:5px 0;border-bottom:1px solid var(--line);">'
+      + '<span style="color:var(--muted);">' + label + '</span>'
+      + '<span><b style="font-size:14px;">' + uniq + '</b> <span style="color:var(--muted);font-size:11px;">명 / ' + d.count + ' 조회</span></span></div>';
+  }
+
+  p.innerHTML = '<div style="font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;">VISITORS</div>'
+    + row('최근 7일', wk) + row('최근 30일', mo) + row('전체', all)
+    + '<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">'
+    + '<span style="font-size:10px;color:var(--muted);opacity:.7;">최대 4시간 지연</span>'
+    + '<a href="' + base + '" target="_blank" rel="noopener" style="color:var(--accent);font-size:11px;">자세히 ↗</a></div>';
 }
 
 
@@ -1737,6 +1809,46 @@ window.addEventListener('load', loadFromStorage);
     if (e.ctrlKey && e.keyCode === 85) { e.preventDefault(); return false; } // Ctrl+U (소스보기)
     if (e.metaKey && e.altKey && [73,74,67].indexOf(e.keyCode) !== -1) { e.preventDefault(); return false; } // Mac
   }, false);
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     방문자 집계 (GoatCounter)
+     ▸ 아래 GOATCOUNTER_CODE 를 본인 코드로 바꾸세요.
+       예) 가입 시 주소가 saekim.goatcounter.com 이면 → 'saekim'
+     ▸ MANAGE 모드에 한 번이라도 들어간 브라우저는 집계에서 자동 제외됩니다.
+       다시 집계에 포함하려면 주소 끝에 #count-me 를 붙여 접속하세요.
+     ═══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  var GOATCOUNTER_CODE = 'saekim';   // ← 여기만 바꾸면 됩니다
+
+  if (!GOATCOUNTER_CODE || GOATCOUNTER_CODE === 'GOATCOUNTER_CODE') {
+    console.info('[집계] GoatCounter 코드가 아직 설정되지 않았습니다.');
+    return;
+  }
+  // MANAGE 모드의 통계 패널이 참조 (집계 제외 기기에서도 통계는 볼 수 있어야 함)
+  window.GOATCOUNTER_CODE_PUBLIC = GOATCOUNTER_CODE;
+  // 페이지가 이미 열려 있는 상태에서 #count-me 를 붙여도 동작하도록
+  window.addEventListener('hashchange', function(){
+    if (location.hash === '#count-me') {
+      try { localStorage.removeItem('sk_owner_device'); } catch(e){}
+      location.reload();
+    }
+  });
+
+  var skip = false;
+  try {
+    if (location.hash === '#count-me') { localStorage.removeItem('sk_owner_device'); }
+    skip = localStorage.getItem('sk_owner_device') === '1';
+  } catch(e){}
+  if (skip) { console.info('[집계] 관리자 기기로 등록되어 집계 제외됨'); return; }
+
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://gc.zgo.at/count.js';
+  s.setAttribute('data-goatcounter', 'https://' + GOATCOUNTER_CODE + '.goatcounter.com/count');
+  document.body.appendChild(s);
 })();
 </script>
 </body>
